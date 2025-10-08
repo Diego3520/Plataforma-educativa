@@ -39,7 +39,7 @@
       },
       {
         "selector": "interface",
-        "format": ["PascalCase"]
+        "format": ["camelCase", "PascalCase"]
       },
       {
         "selector": "typeAlias",

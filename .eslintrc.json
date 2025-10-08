@@ -6,14 +6,21 @@
     "node": true
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "filename-rules"],
   "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "rules": {
     "@typescript-eslint/naming-convention": [
       "error",
       {
         "selector": "variable",
-        "format": ["camelCase"]
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow",
+        "trailingUnderscore": "allow"
+      },
+      {
+        "selector": "variable",
+        "modifiers": ["const"],
+        "format": ["camelCase", "UPPER_CASE"]
       },
       {
         "selector": "function",
@@ -21,11 +28,22 @@
       },
       {
         "selector": "parameter",
-        "format": ["camelCase"]
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow"
       }
+    ],
+    "camelcase": [
+      "error",
+      {
+        "properties": "always",
+        "ignoreDestructuring": false,
+        "ignoreImports": false,
+        "ignoreGlobals": false
+      }
+    ],
+    "filename-rules/match": [
+      "error",
+      "camelcase"
     ]
   }
 }
-
-
-  

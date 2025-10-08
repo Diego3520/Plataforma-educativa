@@ -1,1 +1,1 @@
-const NS=5;
+const nS=5;

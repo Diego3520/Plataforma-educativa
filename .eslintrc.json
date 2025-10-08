@@ -13,3 +13,6 @@
   "rules": {
     "camelcase": ["error", { "properties": "always", "ignoreDestructuring":false}]
   }
+
+
+  

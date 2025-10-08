@@ -6,3 +6,5 @@ function saludar(nombre) {
 }
 
 saludar("Eleonor");
+
+const OJOS=5;

@@ -3,3 +3,4 @@ console.log(ns);
 
 
 const eleonor=10;
+console.log(eleonor);

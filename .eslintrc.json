@@ -5,14 +5,67 @@
     "es2021": true,
     "node": true
   },
-  "extends": "eslint:recommended",
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 12,
+    "ecmaVersion": "latest",
     "sourceType": "module"
   },
+  "plugins": ["@typescript-eslint", "check-file"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "rules": {
-    "camelcase": ["error", { "properties": "always", "ignoreDestructuring":false}]
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "variable",
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow",
+        "trailingUnderscore": "allow"
+      },
+      {
+        "selector": "function",
+        "format": ["camelCase"]
+      },
+      {
+        "selector": "parameter",
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "class",
+        "format": ["camelCase", "PascalCase"]
+      },
+      {
+        "selector": "interface",
+        "format": ["camelCase", "PascalCase"]
+      },
+      {
+        "selector": "typeAlias",
+        "format": ["PascalCase"]
+      },
+      {
+        "selector": "enum",
+        "format": ["PascalCase"]
+      }
+    ],
+    "@typescript-eslint/no-explicit-any": "off",
+    "check-file/filename-naming-convention": [
+      "error",
+      {
+        "**/*.{ts,tsx,js,jsx}": "CAMEL_CASE"
+      },
+      {
+        "ignoreMiddleExtensions": true
+      }
+    ],
+    "check-file/folder-naming-convention": [
+      "error",
+      {
+        "src/**/": "CAMEL_CASE",
+        "lib/**/": "CAMEL_CASE"
+      }
+    ]
   }
-
-
-  
+}

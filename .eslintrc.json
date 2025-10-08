@@ -6,8 +6,15 @@
     "node": true
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "filename-rules"],
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint", "check-file"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "rules": {
     "@typescript-eslint/naming-convention": [
       "error",
@@ -25,20 +32,27 @@
         "selector": "parameter",
         "format": ["camelCase"],
         "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "typeLike",
+        "format": ["PascalCase"]
       }
     ],
-    "camelcase": [
+    "check-file/filename-naming-convention": [
       "error",
       {
-        "properties": "always",
-        "ignoreDestructuring": false,
-        "ignoreImports": false,
-        "ignoreGlobals": false
+        "**/*.{ts,tsx,js,jsx}": "CAMEL_CASE"
+      },
+      {
+        "ignoreMiddleExtensions": true
       }
     ],
-    "filename-rules/match": [
+    "check-file/folder-naming-convention": [
       "error",
-      "camelcase"
+      {
+        "src/**/": "CAMEL_CASE",
+        "lib/**/": "CAMEL_CASE"
+      }
     ]
   }
 }

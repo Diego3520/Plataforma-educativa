@@ -23,43 +23,35 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
       
-      - name: Install dependencies
+      - name: Install project dependencies
+        run: npm install
+        working-directory: ./Backend
+      
+      - name: Install additional dependencies
         run: |
-          npm install eslint@8.10.0
-          npm install @microsoft/eslint-formatter-sarif@3.1.0
-          npm install @typescript-eslint/parser@latest
-          npm install @typescript-eslint/eslint-plugin@latest
-          npm install eslint-plugin-check-file@latest
+          npm install --no-save @microsoft/eslint-formatter-sarif@3.1.0
+        working-directory: ./Backend
       
       - name: Run ESLint (Strict - Fails on errors)
         run: |
-          FILES=$(find Backend -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \))
-          if [ -n "$FILES" ]; then
-            npx eslint Backend \
-              --config .eslintrc.json \
-              --ext .js,.jsx,.ts,.tsx \
-              --max-warnings 0
-          else
-            echo "No JS/TS files to lint"
-          fi
+          npx eslint . \
+            --config ../.eslintrc.json \
+            --ext .js,.jsx,.ts,.tsx \
+            --max-warnings 0
+        working-directory: ./Backend
       
       - name: Run ESLint for SARIF report
         if: always()
         run: |
-          FILES=$(find Backend -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \))
-          if [ -n "$FILES" ]; then
-            npx eslint Backend \
-              --config .eslintrc.json \
-              --ext .js,.jsx,.ts,.tsx \
-              --format @microsoft/eslint-formatter-sarif \
-              --output-file eslint-results.sarif || true
-            echo "sarif_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "sarif_exists=false" >> $GITHUB_OUTPUT
-          fi
+          npx eslint . \
+            --config ../.eslintrc.json \
+            --ext .js,.jsx,.ts,.tsx \
+            --format @microsoft/eslint-formatter-sarif \
+            --output-file ../eslint-results.sarif || true
+          echo "sarif_exists=true" >> $GITHUB_OUTPUT
         continue-on-error: true
+        working-directory: ./Backend
         id: run_eslint_sarif
       
       - name: Upload analysis results to GitHub

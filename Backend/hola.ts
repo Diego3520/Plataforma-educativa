@@ -2,5 +2,5 @@ const ns = 5;
 console.log(ns);
 
 
-const eleonor=10;
-console.log(eleonor);
+const Eleonor=10;
+console.log(Eleonor);

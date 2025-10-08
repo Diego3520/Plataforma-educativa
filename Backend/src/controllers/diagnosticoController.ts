@@ -1,0 +1,112 @@
+import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
+import { diagnosticoService } from '../services/diagnosticoService';
+
+const service = new diagnosticoService();
+
+export class diagnosticoController {
+  static async listar(req: Request, res: Response) {
+    try {
+      const diagnosticos = await service.listarDiagnosticos();
+      return res.json(diagnosticos);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async verUno(req: Request, res: Response) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'ID invalido' });
+      }
+      const diagnostico = await service.obtenerDiagnosticoPorId(id);
+      return res.json(diagnostico);
+    } catch (error: any) {
+      if (error.message === 'Diagnostico no encontrado') {
+        return res.status(404).json({ error: error.message });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async verPorTopico(req: Request, res: Response) {
+    try {
+      const topicoId = parseInt(req.params.topicoId);
+      if (isNaN(topicoId)) {
+        return res.status(400).json({ error: 'ID de topico invalido' });
+      }
+      const diagnosticos = await service.obtenerDiagnosticosPorTopicoId(topicoId);
+      return res.json(diagnosticos);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async verPorDiagnosticador(req: Request, res: Response) {
+    try {
+      const diagnosticadorId = parseInt(req.params.diagnosticadorId);
+      if (isNaN(diagnosticadorId)) {
+        return res.status(400).json({ error: 'ID de diagnosticador invalido' });
+      }
+      const diagnosticos = await service.obtenerDiagnosticosPorDiagnosticadorId(diagnosticadorId);
+      return res.json(diagnosticos);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async crear(req: Request, res: Response) {
+    try {
+      const errores = validationResult(req);
+      if (!errores.isEmpty()) {
+        return res.status(400).json({ errores: errores.array() });
+      }
+      const payload = req.body;
+      const nuevo = await service.crearDiagnostico(payload);
+      return res.status(201).json(nuevo);
+    } catch (error: any) {
+      if (error.code === '23505') {
+        return res.status(409).json({ error: 'Valor unico duplicado' });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async actualizar(req: Request, res: Response) {
+    try {
+      const errores = validationResult(req);
+      if (!errores.isEmpty()) {
+        return res.status(400).json({ errores: errores.array() });
+      }
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'ID invalido' });
+      }
+      const cambios = req.body;
+      const actualizado = await service.editarDiagnostico(id, cambios);
+      return res.json(actualizado);
+    } catch (error: any) {
+      if (error.message.includes('no encontrado')) {
+        return res.status(404).json({ error: error.message });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async eliminar(req: Request, res: Response) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'ID invalido' });
+      }
+      await service.borrarDiagnostico(id);
+      return res.status(204).send();
+    } catch (error: any) {
+      if (error.message.includes('no encontrado')) {
+        return res.status(404).json({ error: error.message });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  }
+}

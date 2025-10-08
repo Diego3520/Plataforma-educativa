@@ -1,19 +1,16 @@
-import { useState, useEffect } from 'react'
-
+import { Routes, Route } from "react-router-dom"
+import HomePage from "./pages/homePage"
+import LoginPage from "./pages/loginPage"
+import RegisterPage from "./pages/registerPage"
 
 function App() {
-    const [mensaje, setMensaje] = useState ("no mensaje")
-    useEffect(() => {
-        fetch("http://localhost:8000/api/hello")
-            .then((response) => response.json())
-            .then((data) => setMensaje(data.mensaje))
-            .catch((error) => console.error("Error fetching data:", error));
-    }, []);
-  return (
-    <>
-        <p>{mensaje}</p>
-    </>
-  )
+    return (
+        <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+        </Routes>
+    )
 }
 
 export default App

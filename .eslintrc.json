@@ -34,10 +34,23 @@
         "leadingUnderscore": "allow"
       },
       {
-        "selector": "typeLike",
+        "selector": "class",
+        "format": ["camelCase", "PascalCase"]
+      },
+      {
+        "selector": "interface",
+        "format": ["PascalCase"]
+      },
+      {
+        "selector": "typeAlias",
+        "format": ["PascalCase"]
+      },
+      {
+        "selector": "enum",
         "format": ["PascalCase"]
       }
     ],
+    "@typescript-eslint/no-explicit-any": "off",
     "check-file/filename-naming-convention": [
       "error",
       {

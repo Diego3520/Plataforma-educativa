@@ -11,5 +11,5 @@
     "sourceType": "module"
   },
   "rules": {
-    "camelcase": ["error", { "properties": "always", "ignoreDestructuring": false }]
-  }
+    "camelcase": ["error", { "properties": "always", "ignoreDestructuring":false}]
+  }

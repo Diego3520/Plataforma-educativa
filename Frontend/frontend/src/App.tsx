@@ -1,19 +1,27 @@
-import { useState, useEffect } from 'react'
-
+import React, { useState } from 'react';
+import CodeEditor from './components/CodeEditor';
+import './App.css';
 
 function App() {
-    const [mensaje, setMensaje] = useState ("no mensaje")
-    useEffect(() => {
-        fetch("http://localhost:8000/api/hello")
-            .then((response) => response.json())
-            .then((data) => setMensaje(data.mensaje))
-            .catch((error) => console.error("Error fetching data:", error));
-    }, []);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+
   return (
-    <>
-        <p>{mensaje}</p>
-    </>
-  )
+    <div className="App">
+      <div className="main-container">
+        <h1>Editor de Código Python</h1>
+        <button 
+          className="open-editor-btn"
+          onClick={() => setIsEditorOpen(true)}
+        >
+          Abrir Editor de Código
+        </button>
+        
+        {isEditorOpen && (
+          <CodeEditor onClose={() => setIsEditorOpen(false)} />
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default App

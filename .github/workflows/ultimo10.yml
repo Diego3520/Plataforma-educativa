@@ -24,34 +24,54 @@ jobs:
         with:
           node-version: '20'
       
-      - name: Install project dependencies
-        run: npm install
-        working-directory: ./Backend
-      
-      - name: Install additional dependencies
+      - name: Create package.json if not exists
         run: |
-          npm install --no-save @microsoft/eslint-formatter-sarif@3.1.0
-        working-directory: ./Backend
+          if [ ! -f package.json ]; then
+            echo '{"name":"eslint-check","version":"1.0.0"}' > package.json
+          fi
+      
+      - name: Install dependencies
+        run: |
+          npm install eslint@8.57.0
+          npm install @microsoft/eslint-formatter-sarif@3.1.0
+          npm install @typescript-eslint/parser@6.21.0
+          npm install @typescript-eslint/eslint-plugin@6.21.0
+          npm install eslint-plugin-check-file@2.8.0
+      
+      - name: Verify ESLint installation
+        run: |
+          npx eslint --version
+          ls -la node_modules/.bin/eslint
       
       - name: Run ESLint (Strict - Fails on errors)
         run: |
-          npx eslint . \
-            --config ../.eslintrc.json \
-            --ext .js,.jsx,.ts,.tsx \
-            --max-warnings 0
-        working-directory: ./Backend
+          FILES=$(find Backend -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) 2>/dev/null || true)
+          if [ -n "$FILES" ]; then
+            echo "Linting files in Backend directory..."
+            ./node_modules/.bin/eslint Backend \
+              --config .eslintrc.json \
+              --ext .js,.jsx,.ts,.tsx \
+              --max-warnings 0
+          else
+            echo "No JS/TS files found in Backend directory"
+            exit 1
+          fi
       
       - name: Run ESLint for SARIF report
         if: always()
         run: |
-          npx eslint . \
-            --config ../.eslintrc.json \
-            --ext .js,.jsx,.ts,.tsx \
-            --format @microsoft/eslint-formatter-sarif \
-            --output-file ../eslint-results.sarif || true
-          echo "sarif_exists=true" >> $GITHUB_OUTPUT
+          FILES=$(find Backend -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) 2>/dev/null || true)
+          if [ -n "$FILES" ]; then
+            ./node_modules/.bin/eslint Backend \
+              --config .eslintrc.json \
+              --ext .js,.jsx,.ts,.tsx \
+              --format @microsoft/eslint-formatter-sarif \
+              --output-file eslint-results.sarif || true
+            echo "sarif_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "sarif_exists=false" >> $GITHUB_OUTPUT
+          fi
         continue-on-error: true
-        working-directory: ./Backend
         id: run_eslint_sarif
       
       - name: Upload analysis results to GitHub

@@ -7,7 +7,6 @@ export class cursoService {
   constructor() {
     this.repo = new cursoRepository();
   }
-
   async listarCursos(): Promise<curso[]> {
     return await this.repo.findAll();
   }

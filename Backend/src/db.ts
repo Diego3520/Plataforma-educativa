@@ -4,12 +4,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const {
-  PG_USER,
-  PG_HOST,
-  PG_DATABASE,
-  PG_PASSWORD,
-  PG_PORT,
-  DATABASE_URL,
+  pGUSER,
+  pGHOST,
+  pGDATABASE,
+  pGPASSWORD,
+  pGPORT,
+  dATABASEURL,
 } = process.env;
 
 function ensureDefined(name: string, value: string | undefined) {
@@ -21,16 +21,16 @@ function ensureDefined(name: string, value: string | undefined) {
 
 let pool: Pool;
 
-if (DATABASE_URL && DATABASE_URL.length > 0) {
+if (dATABASEURL && dATABASEURL.length > 0) {
   pool = new Pool({
-    connectionString: DATABASE_URL,
+    connectionString: dATABASEURL,
   });
 } else {
-  const user = ensureDefined('PG_USER', PG_USER);
-  const host = ensureDefined('PG_HOST', PG_HOST);
-  const database = ensureDefined('PG_DATABASE', PG_DATABASE);
-  const password = ensureDefined('PG_PASSWORD', PG_PASSWORD);
-  const port = parseInt(PG_PORT || '5432');
+  const user = ensureDefined('PG_USER', pGUSER);
+  const host = ensureDefined('PG_HOST', pGHOST);
+  const database = ensureDefined('PG_DATABASE', pGDATABASE);
+  const password = ensureDefined('PG_PASSWORD', pGPASSWORD);
+  const port = parseInt(pGPORT || '5432');
 
   pool = new Pool({
     user,

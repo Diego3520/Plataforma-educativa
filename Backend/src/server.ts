@@ -18,7 +18,7 @@ import pool from './db';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+const pORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -53,8 +53,9 @@ async function comprobarDB() {
   }
 }
 
+
 comprobarDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Servidor iniciado en puerto ${PORT}`);
+  app.listen(pORT, () => {
+    console.log(`Servidor iniciado en puerto ${pORT}`);
   });
 });

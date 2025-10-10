@@ -26,10 +26,10 @@ if (dATABASEURL && dATABASEURL.length > 0) {
     connectionString: dATABASEURL,
   });
 } else {
-  const user = ensureDefined('PG_USER', pGUSER);
-  const host = ensureDefined('PG_HOST', pGHOST);
-  const database = ensureDefined('PG_DATABASE', pGDATABASE);
-  const password = ensureDefined('PG_PASSWORD', pGPASSWORD);
+  const user = ensureDefined('pGUSER', pGUSER);
+  const host = ensureDefined('pGHOST', pGHOST);
+  const database = ensureDefined('pGDATABASE', pGDATABASE);
+  const password = ensureDefined('pGPASSWORD', pGPASSWORD);
   const port = parseInt(pGPORT || '5432');
 
   pool = new Pool({

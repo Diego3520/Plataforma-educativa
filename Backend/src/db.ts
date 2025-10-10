@@ -9,7 +9,7 @@ const {
   pGDATABASE,
   pGPASSWORD,
   pGPORT,
-  dATABASE_URL,
+  dATABASEURL,
 } = process.env;
 
 function ensureDefined(name: string, value: string | undefined) {
@@ -21,9 +21,9 @@ function ensureDefined(name: string, value: string | undefined) {
 
 let pool: Pool;
 
-if (dATABASE_URL && dATABASE_URL.length > 0) {
+if (dATABASEURL && dATABASEURL.length > 0) {
   pool = new Pool({
-    connectionString: dATABASE_URL,
+    connectionString: dATABASEURL,
   });
 } else {
   const user = ensureDefined('PG_USER', pGUSER);

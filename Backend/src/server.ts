@@ -53,6 +53,7 @@ async function comprobarDB() {
   }
 }
 
+
 comprobarDB().then(() => {
   app.listen(pORT, () => {
     console.log(`Servidor iniciado en puerto ${pORT}`);

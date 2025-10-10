@@ -9,7 +9,7 @@ const {
   pGDATABASE,
   pGPASSWORD,
   pGPORT,
-  dATABASE_URL,
+  dATABASEURL,
 } = process.env;
 
 function ensureDefined(name: string, value: string | undefined) {
@@ -21,15 +21,15 @@ function ensureDefined(name: string, value: string | undefined) {
 
 let pool: Pool;
 
-if (dATABASE_URL && dATABASE_URL.length > 0) {
+if (dATABASEURL && dATABASEURL.length > 0) {
   pool = new Pool({
-    connectionString: dATABASE_URL,
+    connectionString: dATABASEURL,
   });
 } else {
-  const user = ensureDefined('PG_USER', pGUSER);
-  const host = ensureDefined('PG_HOST', pGHOST);
-  const database = ensureDefined('PG_DATABASE', pGDATABASE);
-  const password = ensureDefined('PG_PASSWORD', pGPASSWORD);
+  const user = ensureDefined('pGUSER', pGUSER);
+  const host = ensureDefined('pGHOST', pGHOST);
+  const database = ensureDefined('pGDATABASE', pGDATABASE);
+  const password = ensureDefined('pGPASSWORD', pGPASSWORD);
   const port = parseInt(pGPORT || '5432');
 
   pool = new Pool({

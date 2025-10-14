@@ -20,13 +20,18 @@ export class usuarioService {
     return usuario;
   }
 
+  async buscarUsuarioPorCorreo(correo: string): Promise<usuario[]> {
+    return await this.repo.findByEmail(correo);
+  }
+
   async crearUsuario(payload: {
-    cod_sis?: string | null;
     descripcion?: string | null;
     nombre: string;
     apellido: string;
     tipo: string;
     correo?: string | null;
+    password: string;
+    avatar_url?: string | null;
     activo?: boolean;
   }): Promise<usuario> {
     // validaciones basicas
@@ -36,29 +41,34 @@ export class usuarioService {
     if (!payload.apellido) {
       throw new Error('El apellido es obligatorio');
     }
+    if (!payload.password) {
+      throw new Error('La contraseña es obligatoria');
+    }
     const tiposPermitidos = ['docente', 'alumno', 'evaluador', 'editor', 'admin'];
     if (tiposPermitidos.indexOf(payload.tipo) === -1) {
       throw new Error('Tipo de usuario inválido');
     }
     const finalPayload = {
-      cod_sis: payload.cod_sis ? payload.cod_sis : null,
       descripcion: payload.descripcion ? payload.descripcion : null,
       nombre: payload.nombre,
       apellido: payload.apellido,
       tipo: payload.tipo as any,
       correo: payload.correo ? payload.correo : null,
+      password: payload.password,
+      avatar_url: payload.avatar_url ? payload.avatar_url : null,
       activo: payload.activo === undefined ? true : payload.activo
     };
     return await this.repo.create(finalPayload as any);
   }
 
   async editarUsuario(id: number, cambios: Partial<{
-    cod_sis: string | null;
     descripcion: string | null;
     nombre: string;
     apellido: string;
     tipo: string;
     correo: string | null;
+    password: string;
+    avatar_url: string | null;
     activo: boolean;
   }>): Promise<usuario> {
     // Si hay tipo validar

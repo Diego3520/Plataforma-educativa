@@ -14,13 +14,38 @@ function LoginForm({ onClose }: LoginFormProps) {
     const [activeTab, setActiveTab] = useState<"login" | "register">("login")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [error, setError] = useState<string | null>(null)
+    const [loading, setLoading] = useState(false)
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // Login tradicional
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log("Login attempt:", { email, password })
-        // Aquí irá la lógica de autenticación
+        setLoading(true)
+        setError(null)
+        try {
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ correo: email, password })
+            })
+            const data = await res.json()
+            if (res.ok) {
+                localStorage.setItem("token", data.token)
+                // Aquí podrías guardar info de usuario en contexto global si tienes
+                // window.location.reload() // ejemplo para recargar o redirigir
+            } else {
+                setError(data.error || "Error de autenticación")
+            }
+        } catch (err) {
+            setError("Error de red de autenticación")
+        } finally {
+            setLoading(false)
+        }
     }
 
+    // Los handlers de Google y Microsoft los agregaremos después
     const handleGoogleLogin = () => {
         console.log("Google login clicked")
         // Aquí irá la lógica de autenticación con Google
@@ -104,11 +129,18 @@ function LoginForm({ onClose }: LoginFormProps) {
                             />
                         </div>
 
+                        {error && (
+                            <div className="text-red-500 text-sm mb-2 text-center">
+                                {error}
+                            </div>
+                        )}
+
                         <Button
                             type="submit"
                             className="w-full h-10 bg-[#5b8def] hover:bg-[#4a7dd9] text-white rounded-xl text-base font-semibold mb-4"
+                            disabled={loading}
                         >
-                            Iniciar Sesión
+                            {loading ? "Ingresando..." : "Iniciar Sesión"}
                         </Button>
 
                         <div className="flex items-center text-center my-4 text-[#999] text-[13px]">

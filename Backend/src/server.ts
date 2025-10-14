@@ -13,6 +13,7 @@ import evaluacionRoutes from './routes/evaluacionRoutes';
 import notaRoutes from './routes/notaRoutes';
 import diagnosticoRoutes from './routes/diagnosticoRoutes';
 import codeExecutorRoutes from './routes/codeExecutorRoutes';
+import authRoutes from './routes/authRoutes';
 import pool from './db';
 
 dotenv.config();
@@ -36,6 +37,7 @@ app.use('/api/evaluaciones', evaluacionRoutes);
 app.use('/api/notas', notaRoutes);
 app.use('/api/diagnosticos', diagnosticoRoutes);
 app.use('/api/code-executor', codeExecutorRoutes);
+app.use('/api/auth', authRoutes);
 
 // ruta simple
 app.get('/api/hello', (req, res) => {

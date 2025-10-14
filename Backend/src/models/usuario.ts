@@ -8,4 +8,5 @@ export interface usuario {
   correo: string | null;
   creado_at: string;
   activo: boolean;
+  password_hash: string | null;
 }

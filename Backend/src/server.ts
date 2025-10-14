@@ -1,6 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+dotenv.config();
+console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
+console.log('PWD:', process.cwd());
+import passport from './passportConfig';
+import session from 'express-session';
+import jwt from 'jsonwebtoken';
+import pool from './db';
 import usuarioRoutes from './routes/usuarioRoutes';
 import editorRoutes from './routes/editorRoutes';
 import cursoRoutes from './routes/cursoRoutes';
@@ -14,15 +21,63 @@ import notaRoutes from './routes/notaRoutes';
 import diagnosticoRoutes from './routes/diagnosticoRoutes';
 import codeExecutorRoutes from './routes/codeExecutorRoutes';
 import authRoutes from './routes/authRoutes';
-import pool from './db';
 
-dotenv.config();
 
 const app = express();
 const pORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
 app.use(cors());
 app.use(express.json());
+
+app.use(session({
+    secret: process.env.JWT_SECRET!,
+    resave: false,
+    saveUninitialized: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Google OAuth endpoints
+app.get('/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    async (req, res) => {
+        // Obtén el perfil de Google
+        const profile = req.user as any;
+        const correo = profile.emails[0].value;
+        const nombre = profile.name.givenName;
+        const apellido = profile.name.familyName;
+        const googleId = profile.id;
+
+        // Buscar usuario por correo
+        let usuarioRes = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [correo]);
+        let usuario = usuarioRes.rows[0];
+
+        // Si no existe, crear usuario
+        if (!usuario) {
+            let nuevoRes = await pool.query(
+                'INSERT INTO usuarios (nombre, apellido, tipo, correo, activo, cod_sis) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [nombre, apellido, 'alumno', correo, true, googleId]
+            );
+            usuario = nuevoRes.rows[0];
+        }
+
+        // Generar JWT
+        const token = jwt.sign({
+            id_usuario: usuario.id_usuario,
+            correo: usuario.correo,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            tipo: usuario.tipo
+        }, process.env.JWT_SECRET!, { expiresIn: '2h' });
+
+        // Redirige al frontend con el token por query param
+        res.redirect(`http://localhost:8000/google-success?token=${token}`);
+    }
+);
 
 // rutas
 app.use('/api/usuarios', usuarioRoutes);
@@ -41,23 +96,22 @@ app.use('/api/auth', authRoutes);
 
 // ruta simple
 app.get('/api/hello', (req, res) => {
-  res.json({ mensaje: 'Hello from the backend!' });
+    res.json({ mensaje: 'Hello from the backend!' });
 });
 
 // comprobar conexion DB al iniciar
 async function comprobarDB() {
-  try {
-    await pool.query('SELECT 1');
-    console.log('Conexión a BD OK');
-  } catch (error) {
-    console.error('Error conectando a BD:', error);
-    process.exit(1);
-  }
+    try {
+        await pool.query('SELECT 1');
+        console.log('Conexión a BD OK');
+    } catch (error) {
+        console.error('Error conectando a BD:', error);
+        process.exit(1);
+    }
 }
 
-
 comprobarDB().then(() => {
-  app.listen(pORT, () => {
-    console.log(`Servidor iniciado en puerto ${pORT}`);
-  });
+    app.listen(pORT, () => {
+        console.log(`Servidor iniciado en puerto ${pORT}`);
+    });
 });

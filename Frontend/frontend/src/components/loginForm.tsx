@@ -45,15 +45,15 @@ function LoginForm({ onClose }: LoginFormProps) {
         }
     }
 
-    // Los handlers de Google y Microsoft los agregaremos después
+    // Google OAuth login
     const handleGoogleLogin = () => {
-        console.log("Google login clicked")
-        // Aquí irá la lógica de autenticación con Google
+        // Redirige al backend para iniciar sesión con Google
+        window.location.href = "http://localhost:5000/auth/google"
     }
 
     const handleMicrosoftLogin = () => {
+        // Aquí irá la lógica de autenticación con Microsoft (por implementar)
         console.log("Microsoft login clicked")
-        // Aquí irá la lógica de autenticación con Microsoft
     }
 
     return (

@@ -6,12 +6,11 @@ import { usuarioService } from '../services/usuarioService';
 import { OAuth2Client } from 'google-auth-library';
 import fetch from 'node-fetch';
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+const jwtSecret = process.env.JWT_SECRET || 'secret';
 
-const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(googleClientId);
 
-// Tipado para respuesta de Microsoft Graph API
 interface MicrosoftUser {
     id?: string;
     mail?: string;
@@ -20,7 +19,6 @@ interface MicrosoftUser {
 }
 
 export class authController {
-    // Login tradicional
     static async login(req: Request, res: Response) {
         const { correo, password } = req.body;
         const repo = new usuarioRepository();
@@ -32,15 +30,14 @@ export class authController {
         if (!valid)
             return res.status(401).json({ error: 'Credenciales inválidas' });
 
-        const token = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
         return res.json({ token, usuario });
     }
 
-    // Login con Google
     static async google(req: Request, res: Response) {
         const { token } = req.body;
         try {
-            const ticket = await googleClient.verifyIdToken({ idToken: token, audience: GOOGLE_CLIENT_ID });
+            const ticket = await googleClient.verifyIdToken({ idToken: token, audience: googleClientId });
             const payload = ticket.getPayload();
             if (!payload || !payload.email)
                 return res.status(400).json({ error: 'Token inválido' });
@@ -49,7 +46,6 @@ export class authController {
             let usuario = await repo.findByCorreo(payload.email);
 
             if (!usuario) {
-                // Crear usuario si no existe, guardar google_id
                 const service = new usuarioService();
                 usuario = await service.crearUsuario({
                     nombre: payload.given_name || 'GoogleUser',
@@ -58,19 +54,18 @@ export class authController {
                     correo: payload.email,
                     activo: true,
                     cod_sis: null,
-                    google_id: payload.sub,     // Google ID
-                    microsoft_id: null          // No hay Microsoft ID
+                    google_id: payload.sub,
+                    microsoft_id: null
                 });
             }
 
-            const jwtToken = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, JWT_SECRET, { expiresIn: '7d' });
+            const jwtToken = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
             return res.json({ token: jwtToken, usuario });
         } catch (err) {
             return res.status(401).json({ error: 'Autenticación con Google fallida' });
         }
     }
 
-    // Login con Microsoft
     static async microsoft(req: Request, res: Response) {
         const { token } = req.body;
         try {
@@ -85,7 +80,6 @@ export class authController {
             let usuario = await repo.findByCorreo(data.mail);
 
             if (!usuario) {
-                // Crear usuario si no existe, guardar microsoft_id
                 const service = new usuarioService();
                 usuario = await service.crearUsuario({
                     nombre: data.givenName || 'MicrosoftUser',
@@ -99,7 +93,7 @@ export class authController {
                 });
             }
 
-            const jwtToken = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, JWT_SECRET, { expiresIn: '7d' });
+            const jwtToken = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
             return res.json({ token: jwtToken, usuario });
         } catch (err) {
             return res.status(401).json({ error: 'Autenticación con Microsoft fallida' });

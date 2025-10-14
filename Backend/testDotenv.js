@@ -1,4 +1,4 @@
-require('dotenv').config();
+import 'dotenv/config';
 
-console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
-console.log('PWD:', process.cwd());
+console.log(process.env.GOOGLE_CLIENT_ID);
+console.log(process.env.JWT_SECRET);

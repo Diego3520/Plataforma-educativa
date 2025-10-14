@@ -44,11 +44,11 @@ export class usuarioService {
             throw new Error('Tipo de usuario inválido');
         }
 
-        let password_hash = null;
+        let passwordHash = null;
         if (payload.password) {
             const saltRounds = 10;
-            password_hash = await bcrypt.hash(payload.password, saltRounds);
-            console.log('hash generado:', password_hash); // <-- LOG IMPORTANTE
+            passwordHash = await bcrypt.hash(payload.password, saltRounds);
+            console.log('hash generado:', passwordHash); // <-- LOG IMPORTANTE
         } else {
             console.log('No se recibió password en el payload!');
         }
@@ -61,7 +61,7 @@ export class usuarioService {
             tipo: payload.tipo as any,
             correo: payload.correo ? payload.correo : null,
             activo: payload.activo === undefined ? true : payload.activo,
-            password_hash,
+            password_hash: passwordHash,
             google_id: payload.google_id ?? null,
             microsoft_id: payload.microsoft_id ?? null,
         };

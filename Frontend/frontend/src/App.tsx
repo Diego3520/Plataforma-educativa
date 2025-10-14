@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import CodeEditor from './components/CodeEditor';
+import LoginForm from './components/loginForm';
 import Registro from './components/Registro';
 import AuthCallback from './components/AuthCallback';
 import './App.css';
 
 function App() {
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
+    const [isEditorOpen, setIsEditorOpen] = useState(false);
+    const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   return (
     <Router>

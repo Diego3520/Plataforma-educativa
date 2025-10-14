@@ -1,28 +1,27 @@
 import { usuario } from '../models/usuario';
 import { usuarioRepository } from '../repositories/usuarioRepository';
+import bcrypt from 'bcrypt';
 
 export class usuarioService {
-  private repo: usuarioRepository;
+    private repo: usuarioRepository;
 
-  constructor() {
-    this.repo = new usuarioRepository();
-  }
-
-  async listarUsuarios(): Promise<usuario[]> {
-    return await this.repo.findAll();
-  }
-
-  async obtenerUsuarioPorId(id: number): Promise<usuario> {
-    const usuario = await this.repo.findById(id);
-    if (!usuario) {
-      throw new Error('Usuario no encontrado');
+    constructor() {
+        this.repo = new usuarioRepository();
     }
-    return usuario;
-  }
 
-  async buscarUsuarioPorCorreo(correo: string): Promise<usuario[]> {
-    return await this.repo.findByEmail(correo);
-  }
+    async listarUsuarios(): Promise<usuario[]> {
+        return await this.repo.findAll();
+    }
+
+    async obtenerUsuarioPorId(id: number): Promise<usuario> {
+        const usuario = await this.repo.findById(id);
+        if (!usuario) {
+            throw new Error('Usuario no encontrado');
+        }
+        return usuario;
+    }
+
+    
 
   async crearUsuario(payload: {
     descripcion?: string | null;
@@ -78,17 +77,11 @@ export class usuarioService {
         throw new Error('Tipo de usuario inválido');
       }
     }
-    const actualizado = await this.repo.update(id, cambios as any);
-    if (!actualizado) {
-      throw new Error('Usuario no encontrado para actualizar');
-    }
-    return actualizado;
-  }
 
-  async borrarUsuario(id: number): Promise<void> {
-    const eliminado = await this.repo.delete(id);
-    if (!eliminado) {
-      throw new Error('Usuario no encontrado para eliminar');
+    async borrarUsuario(id: number): Promise<void> {
+        const eliminado = await this.repo.delete(id);
+        if (!eliminado) {
+            throw new Error('Usuario no encontrado para eliminar');
+        }
     }
-  }
 }

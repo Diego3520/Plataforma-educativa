@@ -3,9 +3,19 @@ import { body } from 'express-validator';
 import { authController } from '../controllers/authController';
 import passport from 'passport';
 
+
 const router = Router();
 
+
 const tiposPermitidos = ['docente', 'alumno', 'evaluador', 'editor', 'admin'];
+router.post('/login', authController.login);
+router.post('/google', authController.google);
+router.post('/microsoft', authController.microsoft);
+
+
+
+
+
 
 // Registro manual
 router.post('/registro', 

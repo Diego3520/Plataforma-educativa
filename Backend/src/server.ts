@@ -8,6 +8,7 @@ import passport from './passportConfig';
 import session from 'express-session';
 import jwt from 'jsonwebtoken';
 import pool from './db';
+import passport from './config/passport';
 import usuarioRoutes from './routes/usuarioRoutes';
 import editorRoutes from './routes/editorRoutes';
 import cursoRoutes from './routes/cursoRoutes';
@@ -21,11 +22,16 @@ import notaRoutes from './routes/notaRoutes';
 import diagnosticoRoutes from './routes/diagnosticoRoutes';
 import codeExecutorRoutes from './routes/codeExecutorRoutes';
 import authRoutes from './routes/authRoutes';
+import pool from './db';
+
 
 const app = express();
-const pORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
 
 app.use(session({
@@ -115,6 +121,19 @@ app.get('/auth/microsoft/callback',
     }
 );
 
+// Configuración de sesión para passport
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'session_secret_key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// Inicializar passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// rutas
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/editores', editorRoutes);
 app.use('/api/cursos', cursoRoutes);
@@ -128,6 +147,8 @@ app.use('/api/notas', notaRoutes);
 app.use('/api/diagnosticos', diagnosticoRoutes);
 app.use('/api/code-executor', codeExecutorRoutes);
 app.use('/api/auth', authRoutes);
+// Ruta adicional para Microsoft OAuth sin /api (para compatibilidad con callback URL)
+app.use('/auth', authRoutes);
 
 app.get('/api/hello', (req, res) => {
     res.json({ mensaje: 'Hello from the backend!' });

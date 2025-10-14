@@ -30,6 +30,8 @@ export class usuarioService {
         correo?: string | null;
         activo?: boolean;
         password?: string;
+        google_id?: string | null;
+        microsoft_id?: string | null;
     }): Promise<usuario> {
         if (!payload.nombre) {
             throw new Error('El nombre es obligatorio');
@@ -59,7 +61,9 @@ export class usuarioService {
             tipo: payload.tipo as any,
             correo: payload.correo ? payload.correo : null,
             activo: payload.activo === undefined ? true : payload.activo,
-            password_hash
+            password_hash,
+            google_id: payload.google_id ?? null,
+            microsoft_id: payload.microsoft_id ?? null,
         };
         console.log('Payload final que se manda al repo:', finalPayload); // <-- LOG IMPORTANTE
         return await this.repo.create(finalPayload as any);
@@ -75,6 +79,8 @@ export class usuarioService {
         activo: boolean;
         password?: string;
         password_hash?: string | null;
+        google_id?: string | null;
+        microsoft_id?: string | null;
     }>): Promise<usuario> {
         if (cambios.tipo !== undefined) {
             const tiposPermitidos = ['docente', 'alumno', 'evaluador', 'editor', 'admin'];

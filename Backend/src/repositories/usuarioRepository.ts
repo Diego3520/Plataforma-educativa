@@ -15,19 +15,22 @@ export class usuarioRepository {
         return res.rows[0];
     }
 
+    // MODIFICADO: Ahora incluye google_id y microsoft_id
     async create(data: Omit<usuario, 'id_usuario' | 'creado_at'>): Promise<usuario> {
         const query = `INSERT INTO usuarios
-                       (cod_sis, descripcion, nombre, apellido, tipo, correo, activo, password_hash)
-                       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`;
+                       (cod_sis, descripcion, nombre, apellido, tipo, correo, activo, password_hash, google_id, microsoft_id)
+                       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`;
         const values = [
-            data.cod_sis,
-            data.descripcion,
+            data.cod_sis ?? null,
+            data.descripcion ?? null,
             data.nombre,
             data.apellido,
             data.tipo,
-            data.correo,
-            data.activo,
-            data.password_hash
+            data.correo ?? null,
+            data.activo ?? true,
+            data.password_hash ?? null,
+            data.google_id ?? null,
+            data.microsoft_id ?? null
         ];
         console.log('INSERT values:', values); // <-- LOG ANTES DEL QUERY
         const res = await pool.query(query, values);

@@ -33,7 +33,7 @@ function LoginForm({ onClose }: LoginFormProps) {
             const data = await res.json()
             if (res.ok) {
                 localStorage.setItem("token", data.token)
-                // Aquí podrías guardar info de usuario en contexto global si tienes
+                // Puedes guardar info de usuario en contexto global si tienes
                 // window.location.reload() // ejemplo para recargar o redirigir
             } else {
                 setError(data.error || "Error de autenticación")
@@ -47,13 +47,12 @@ function LoginForm({ onClose }: LoginFormProps) {
 
     // Google OAuth login
     const handleGoogleLogin = () => {
-        // Redirige al backend para iniciar sesión con Google
         window.location.href = "http://localhost:5000/auth/google"
     }
 
+    // Microsoft OAuth login (Nuevo: funcional)
     const handleMicrosoftLogin = () => {
-        // Aquí irá la lógica de autenticación con Microsoft (por implementar)
-        console.log("Microsoft login clicked")
+        window.location.href = "http://localhost:5000/auth/microsoft"
     }
 
     return (

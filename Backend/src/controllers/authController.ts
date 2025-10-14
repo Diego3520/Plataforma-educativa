@@ -13,6 +13,7 @@ const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Tipado para respuesta de Microsoft Graph API
 interface MicrosoftUser {
+    id?: string;
     mail?: string;
     givenName?: string;
     surname?: string;
@@ -48,7 +49,7 @@ export class authController {
             let usuario = await repo.findByCorreo(payload.email);
 
             if (!usuario) {
-                // Crear usuario si no existe
+                // Crear usuario si no existe, guardar google_id
                 const service = new usuarioService();
                 usuario = await service.crearUsuario({
                     nombre: payload.given_name || 'GoogleUser',
@@ -56,6 +57,9 @@ export class authController {
                     tipo: 'alumno',
                     correo: payload.email,
                     activo: true,
+                    cod_sis: null,
+                    google_id: payload.sub,     // Google ID
+                    microsoft_id: null          // No hay Microsoft ID
                 });
             }
 
@@ -81,7 +85,7 @@ export class authController {
             let usuario = await repo.findByCorreo(data.mail);
 
             if (!usuario) {
-                // Crear usuario si no existe
+                // Crear usuario si no existe, guardar microsoft_id
                 const service = new usuarioService();
                 usuario = await service.crearUsuario({
                     nombre: data.givenName || 'MicrosoftUser',
@@ -89,6 +93,9 @@ export class authController {
                     tipo: 'alumno',
                     correo: data.mail,
                     activo: true,
+                    cod_sis: null,
+                    google_id: null,
+                    microsoft_id: data.id
                 });
             }
 

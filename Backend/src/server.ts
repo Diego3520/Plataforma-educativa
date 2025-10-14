@@ -22,7 +22,6 @@ import diagnosticoRoutes from './routes/diagnosticoRoutes';
 import codeExecutorRoutes from './routes/codeExecutorRoutes';
 import authRoutes from './routes/authRoutes';
 
-
 const app = express();
 const pORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
@@ -56,11 +55,14 @@ app.get('/auth/google/callback',
         let usuarioRes = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [correo]);
         let usuario = usuarioRes.rows[0];
 
-        // Si no existe, crear usuario
+        // Si no existe, crear usuario con google_id y microsoft_id en null
         if (!usuario) {
             let nuevoRes = await pool.query(
-                'INSERT INTO usuarios (nombre, apellido, tipo, correo, activo, cod_sis) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                [nombre, apellido, 'alumno', correo, true, googleId]
+                `INSERT INTO usuarios
+                 (nombre, apellido, tipo, correo, activo, cod_sis, google_id, microsoft_id)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                     RETURNING *`,
+                [nombre, apellido, 'alumno', correo, true, null, googleId, null]
             );
             usuario = nuevoRes.rows[0];
         }
@@ -79,7 +81,54 @@ app.get('/auth/google/callback',
     }
 );
 
-// rutas
+// Microsoft OAuth endpoints
+app.get('/auth/microsoft',
+    passport.authenticate('microsoft')
+);
+
+app.get('/auth/microsoft/callback',
+    passport.authenticate('microsoft', { failureRedirect: '/login' }),
+    async (req, res) => {
+        // Obtén el perfil de Microsoft
+        const profile = req.user as any;
+        // El perfil puede variar, pero normalmente:
+        // profile.id, profile.displayName, profile.emails[0].value
+        const correo = profile.emails?.[0]?.value ?? profile._json.mail;
+        const nombre = profile.name?.givenName ?? profile.displayName ?? 'MicrosoftUser';
+        const apellido = profile.name?.familyName ?? '';
+        const microsoftId = profile.id;
+
+        // Buscar usuario por correo
+        let usuarioRes = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [correo]);
+        let usuario = usuarioRes.rows[0];
+
+        // Si no existe, crear usuario con microsoft_id y google_id en null
+        if (!usuario) {
+            let nuevoRes = await pool.query(
+                `INSERT INTO usuarios 
+                 (nombre, apellido, tipo, correo, activo, cod_sis, google_id, microsoft_id) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+                 RETURNING *`,
+                [nombre, apellido, 'alumno', correo, true, null, null, microsoftId]
+            );
+            usuario = nuevoRes.rows[0];
+        }
+
+        // Generar JWT
+        const token = jwt.sign({
+            id_usuario: usuario.id_usuario,
+            correo: usuario.correo,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            tipo: usuario.tipo
+        }, process.env.JWT_SECRET!, { expiresIn: '2h' });
+
+        // Redirige al frontend con el token por query param
+        res.redirect(`http://localhost:8000/microsoft-success?token=${token}`);
+    }
+);
+
+// rutas normales
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/editores', editorRoutes);
 app.use('/api/cursos', cursoRoutes);

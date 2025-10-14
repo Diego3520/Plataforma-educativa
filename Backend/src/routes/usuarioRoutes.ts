@@ -18,6 +18,8 @@ router.post('/',
   body('apellido').notEmpty().withMessage('apellido obligatorio'),
   body('tipo').notEmpty().withMessage('tipo obligatorio').isIn(tiposPermitidos).withMessage('tipo inválido'),
   body('correo').optional().isEmail().withMessage('correo inválido'),
+  body('password').notEmpty().withMessage('contraseña obligatoria'),
+  body('avatar_url').optional().isURL().withMessage('avatar_url debe ser una URL válida'),
   usuarioController.crear
 );
 
@@ -25,6 +27,8 @@ router.put('/:id',
   param('id').isInt().withMessage('ID debe ser entero'),
   body('tipo').optional().isIn(tiposPermitidos).withMessage('tipo inválido'),
   body('correo').optional().isEmail().withMessage('correo inválido'),
+  body('password').optional(),
+  body('avatar_url').optional().isURL().withMessage('avatar_url debe ser una URL válida'),
   usuarioController.actualizar
 );
 

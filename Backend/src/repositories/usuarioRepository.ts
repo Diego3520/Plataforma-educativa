@@ -15,16 +15,22 @@ export class usuarioRepository {
     return res.rows[0];
   }
 
+  async findByEmail(email: string): Promise<usuario[]> {
+    const res = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [email]);
+    return res.rows;
+  }
+
   async create(data: Omit<usuario, 'id_usuario' | 'creado_at'>): Promise<usuario> {
-    const query = `INSERT INTO usuarios (cod_sis, descripcion, nombre, apellido, tipo, correo, activo)
-      VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`;
+    const query = `INSERT INTO usuarios (descripcion, nombre, apellido, tipo, correo, password, avatar_url, activo)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`;
     const values = [
-      data.cod_sis,
       data.descripcion,
       data.nombre,
       data.apellido,
       data.tipo,
       data.correo,
+      data.password,
+      data.avatar_url,
       data.activo
     ];
     const res = await pool.query(query, values);

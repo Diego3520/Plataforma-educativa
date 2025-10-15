@@ -1,0 +1,94 @@
+.hero-hero{
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  background: linear-gradient(180deg, #6ba3e0 0%, #7fc27a 100%);
+  border-radius: 12px;
+  margin: 1rem;
+}
+
+.hero-inner{
+  text-align: center;
+  max-width: 900px;
+  width: 100%;
+}
+
+.hero-icon{
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 1.5rem auto;
+  background: rgba(255,255,255,0.12);
+  border-radius: 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+}
+
+.hero-title{
+  font-size: 5rem;
+  color: #fff;
+  font-weight: 900;
+  margin: 0 0 1rem 0;
+  line-height: 1.02;
+}
+
+.hero-subtitle{
+  color: rgba(255,255,255,0.95);
+  font-size: 1.05rem;
+  margin-bottom: 2rem;
+}
+
+.hero-cta{
+  background: #fff;
+  color: #2b6bd1;
+  border: none;
+  padding: 0.9rem 2.25rem;
+  border-radius: 10px;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(27,84,255,0.14);
+  cursor: pointer;
+}
+
+.hero-cta:hover{ filter: brightness(0.98); transform: translateY(-1px); }
+
+/* Fullscreen modal */
+.hero-modal{
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.hero-backdrop{
+  position: absolute;
+  inset: 0;
+  /* Fully opaque gradient so nothing behind is visible */
+  background: linear-gradient(180deg, rgba(107,163,224,1) 0%, rgba(127,194,122,1) 100%);
+}
+
+.hero-card{
+  position: relative;
+  z-index: 60;
+  width: min(1100px, 92%);
+  background: transparent;
+  padding: 3rem 2rem;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.hero-back{
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  background: rgba(255,255,255,0.12);
+  border: none;
+  padding: 0.4rem;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}

@@ -6,7 +6,6 @@ console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
 console.log('PWD:', process.cwd());
 import passport from './config/passport';
 import session from 'express-session';
-import jwt from 'jsonwebtoken';
 import usuarioRoutes from './routes/usuarioRoutes';
 import editorRoutes from './routes/editorRoutes';
 import cursoRoutes from './routes/cursoRoutes';
@@ -24,7 +23,7 @@ import pool from './db';
 
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+const pORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:8000',
@@ -76,7 +75,7 @@ async function comprobarDB() {
 }
 
 comprobarDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Servidor iniciado en puerto ${PORT}`);
+    app.listen(pORT, () => {
+        console.log(`Servidor iniciado en puerto ${pORT}`);
     });
 });

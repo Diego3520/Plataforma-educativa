@@ -7,7 +7,6 @@ import { OAuth2Client } from 'google-auth-library';
 import fetch from 'node-fetch';
 import { validationResult } from 'express-validator';
 import { authService } from '../services/authService';
-import passport from 'passport';
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
 const jwtSecret = process.env.JWT_SECRET || 'secret';

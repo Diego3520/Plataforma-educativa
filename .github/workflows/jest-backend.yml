@@ -19,11 +19,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
+
+      - name: Cache Backend node_modules
+        uses: actions/cache@v4
+        with:
+          path: Backend/node_modules
+          key: ${{ runner.os }}-backend-node-${{ hashFiles('Backend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-backend-node-
 
       - name: Install Backend dependencies
         working-directory: Backend
-        run: npm ci
+        run: npm install
 
       - name: Run Backend tests
         working-directory: Backend

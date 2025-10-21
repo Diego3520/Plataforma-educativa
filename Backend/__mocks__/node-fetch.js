@@ -1,5 +1,6 @@
-/* eslint-disable check-file/filename-naming-convention */
 /* eslint-env jest */
+/* eslint-disable check-file/filename-naming-convention */
+
 // Mock simple de node-fetch para que las pruebas no importen la implementación ESM real.
 // Exportamos __esModule: true para simular un default export.
 const mockFetch = jest.fn(() =>

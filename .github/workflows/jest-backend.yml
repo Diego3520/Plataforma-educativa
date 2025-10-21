@@ -1,11 +1,13 @@
+# Coloca este archivo en .github/workflows/jest-backend.yml (y commítalo a develop)
 name: Backend Jest tests
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   push:
     branches:
-      - main
+      - develop
+  pull_request:
+    branches:
+      - develop
 
 jobs:
   backend-tests:

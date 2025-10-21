@@ -9,11 +9,9 @@ on:
 
 jobs:
   backend-tests:
-    name: Run Backend Jest tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18
         uses: actions/setup-node@v4
@@ -30,7 +28,7 @@ jobs:
 
       - name: Install Backend dependencies
         working-directory: Backend
-        run: npm install
+        run: npm ci
 
       - name: Run Backend tests
         working-directory: Backend

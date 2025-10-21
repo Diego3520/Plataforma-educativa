@@ -1,4 +1,3 @@
-# Coloca este archivo en .github/workflows/jest-backend.yml (y commítalo a develop)
 name: Backend Jest tests
 
 on:

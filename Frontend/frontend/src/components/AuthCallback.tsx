@@ -8,7 +8,6 @@ const AuthCallback: React.FC = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
-  const [provider] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -17,6 +16,8 @@ const AuthCallback: React.FC = () => {
     const emailParam = searchParams.get('email');
     const providerParam = searchParams.get('provider');
     const nombreParam = searchParams.get('nombre');
+    const tipoParam = searchParams.get('tipo');
+    const idParam = searchParams.get('id');
     const needsVerification = searchParams.get('needs_verification');
     const errorParam = searchParams.get('error');
     
@@ -25,6 +26,8 @@ const AuthCallback: React.FC = () => {
       email: emailParam,
       provider: providerParam,
       nombre: nombreParam,
+      tipo: tipoParam,
+      id: idParam,
       needsVerification,
       error: errorParam
     });
@@ -46,18 +49,19 @@ const AuthCallback: React.FC = () => {
       // Guardar el token
       localStorage.setItem('token', token);
       
-      // Si tenemos el nombre del usuario, crear un objeto usuario básico
-      if (nombreParam) {
+      // Crear objeto usuario con datos reales del backend
+      if (nombreParam && tipoParam && idParam) {
         const nombreCompleto = decodeURIComponent(nombreParam);
         const partesNombre = nombreCompleto.split(' ');
-        const usuarioBasico = {
+        const usuarioReal = {
+          id_usuario: parseInt(idParam),
           nombre: partesNombre[0] || 'Usuario',
           apellido: partesNombre.slice(1).join(' ') || '',
           correo: emailParam || '',
-          tipo: 'alumno'
+          tipo: tipoParam as 'docente' | 'alumno' | 'evaluador' | 'editor' | 'admin'
         };
-        localStorage.setItem('usuario', JSON.stringify(usuarioBasico));
-        console.log('Usuario OAuth guardado:', usuarioBasico);
+        localStorage.setItem('usuario', JSON.stringify(usuarioReal));
+        console.log('Usuario OAuth guardado (real):', usuarioReal);
       }
       
       // Mostrar mensaje personalizado con el nombre del usuario
@@ -67,7 +71,7 @@ const AuthCallback: React.FC = () => {
       
       // Redirigir después de unos segundos
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = '/dashboard';
       }, 3000);
     } else {
       setError('No se recibió el token de autenticación. Por favor, inténtalo de nuevo.');
@@ -93,7 +97,7 @@ const AuthCallback: React.FC = () => {
         setStatus('success');
         
         setTimeout(() => {
-          window.location.href = '/';
+          window.location.href = '/dashboard';
         }, 3000);
       } else {
         setMessage(response.mensaje);

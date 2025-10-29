@@ -39,13 +39,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onSwitchToRegister }) 
             const data = await response.json();
             
             if (response.ok) {
+                // Guardar token y usuario en localStorage
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("usuario", JSON.stringify(data.usuario));
                 
                 // Mostrar mensaje de éxito
-                setError(null);
-                setLoading(false);
                 setSuccess(true);
+                setError(null);
                 
                 // Redirigir después de un breve delay
                 setTimeout(() => {
@@ -55,10 +55,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onSwitchToRegister }) 
                 }, 1500);
             } else {
                 setError(data.error || "Error de autenticación");
+                setLoading(false);
             }
         } catch (err) {
             setError("Error de red de autenticación");
-        } finally {
             setLoading(false);
         }
     };
@@ -172,7 +172,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onSwitchToRegister }) 
                                 onChange={handleInputChange}
                                 placeholder="introduce tu correo electrónico"
                                 required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                disabled={loading || success}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
                             />
                         </div>
 
@@ -187,7 +188,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onSwitchToRegister }) 
                                 onChange={handleInputChange}
                                 placeholder="introduce tu contraseña"
                                 required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                disabled={loading || success}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
                             />
                         </div>
 
@@ -199,8 +201,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onSwitchToRegister }) 
                             {loading ? "iniciando sesión..." : success ? "redirigiendo..." : "iniciar sesión"}
                         </button>
                     </form>
-
-                    
                 </div>
             </div>
         </div>

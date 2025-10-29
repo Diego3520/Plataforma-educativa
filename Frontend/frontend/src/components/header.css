@@ -1,0 +1,75 @@
+
+.app-header {
+  position: fixed;
+  top: 16px;
+  left: 0;
+  right: 0;
+  pointer-events: none; /* let underlying hero clicks still work except for buttons */
+  z-index: 60;
+}
+
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-right {
+  pointer-events: auto; /* enable interaction for buttons */
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255,255,255,0.06);
+  padding: 6px 8px;
+  border-radius: 9999px; /* pill */
+  box-shadow: 0 6px 18px rgba(14, 30, 37, 0.12);
+}
+
+/* Variant when header is placed inside the hero card */
+.header--inside-hero {
+  position: absolute;
+  top: -64px; /* one more jump upward */
+  right: 4px; /* three small jumps more toward the right edge (almost flush) */
+  left: auto;
+  width: auto;
+  max-width: none;
+  pointer-events: none; /* container still non-interactive except buttons */
+  z-index: 80;
+}
+
+.header--inside-hero .header-inner { padding: 0; }
+.header--inside-hero .header-right {
+  pointer-events: auto;
+  gap: 10px;
+  padding: 0; /* no grouped background */
+  background: transparent; /* remove translucent pill */
+  box-shadow: none; /* remove shadow */
+  align-items: center;
+}
+
+.header--inside-hero .header-right button {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 6px 10px;
+}
+
+
+
+/* Prevent overflow on very small screens */
+@media (max-width: 640px) {
+  /* Keep the header visible on very small screens but less offset */
+  .header--inside-hero { top: -12px; right: 12px; }
+  .header--inside-hero .header-right { gap: 6px; padding: 4px 6px; }
+  .header--inside-hero .header-right button { font-size: 0.82rem; padding: 5px 8px; }
+}
+
+.header-left { flex: 1; }
+
+/* Small responsive tweak */
+@media (max-width: 640px) {
+  .header-inner { padding: 0 12px; }
+  .header-right { gap: 8px; }
+}

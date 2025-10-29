@@ -282,7 +282,7 @@ export class authController {
         });
         const token = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
         const nombreCompleto = `${usuario.nombre} ${usuario.apellido}`.trim();
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=google&nombre=${encodeURIComponent(nombreCompleto)}`;
+        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=google&nombre=${encodeURIComponent(nombreCompleto)}&email=${encodeURIComponent(usuario.correo || '')}&tipo=${usuario.tipo}&id=${usuario.id_usuario}`;
         console.log('URL de redirección:', redirectUrl);
         return res.redirect(redirectUrl);
       } else {
@@ -365,7 +365,7 @@ export class authController {
         });
         const token = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
         const nombreCompleto = `${usuario.nombre} ${usuario.apellido}`.trim();
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=microsoft&nombre=${encodeURIComponent(nombreCompleto)}`;
+        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=microsoft&nombre=${encodeURIComponent(nombreCompleto)}&email=${encodeURIComponent(usuario.correo || '')}&tipo=${usuario.tipo}&id=${usuario.id_usuario}`;
         console.log('URL de redirección:', redirectUrl);
         return res.redirect(redirectUrl);
       } else {

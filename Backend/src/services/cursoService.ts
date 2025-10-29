@@ -38,6 +38,7 @@ export class cursoService {
     evaluador_id?: number | null;
     titulo?: string | null;
     descripcion?: string | null;
+    activo?: boolean;
   }): Promise<curso> {
     if (!payload.codigo) {
       throw new Error('El codigo es obligatorio');
@@ -49,7 +50,8 @@ export class cursoService {
       docente_id: payload.docente_id || null,
       evaluador_id: payload.evaluador_id || null,
       titulo: payload.titulo || null,
-      descripcion: payload.descripcion || null
+      descripcion: payload.descripcion || null,
+      activo: payload.activo ?? true
     };
     return await this.repo.create(finalPayload as any);
   }
@@ -61,6 +63,7 @@ export class cursoService {
     evaluador_id: number | null;
     titulo: string | null;
     descripcion: string | null;
+    activo: boolean;
   }>): Promise<curso> {
     const actualizado = await this.repo.update(id, cambios as any);
     if (!actualizado) {

@@ -31,15 +31,16 @@ export class cursoRepository {
   }
 
   async create(data: Omit<curso, 'id_curso' | 'fecha_creacion'>): Promise<curso> {
-    const query = `INSERT INTO cursos (codigo, editor_id, docente_id, evaluador_id, titulo, descripcion)
-      VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
+    const query = `INSERT INTO cursos (codigo, editor_id, docente_id, evaluador_id, titulo, descripcion, activo)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
     const values = [
       data.codigo,
       data.editor_id,
       data.docente_id,
       data.evaluador_id,
       data.titulo,
-      data.descripcion
+      data.descripcion,
+      data.activo ?? true
     ];
     const res = await pool.query(query, values);
     return res.rows[0];

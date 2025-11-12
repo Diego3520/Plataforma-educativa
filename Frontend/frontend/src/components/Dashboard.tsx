@@ -44,6 +44,64 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+type Topico = {
+  id_topico: number;
+  id_curso: number;
+  orden: number;
+  titulo: string | null;
+  descripcion: string | null;
+  activo: boolean;
+};
+
+function TopicosList({ cursoId }: { cursoId: number }) {
+  const navigate = useNavigate();
+  const [topicos, setTopicos] = useState<Topico[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTopicos = async () => {
+      try {
+        const data = await fetchJSON<Topico[]>(`${baseApi}/topicos/curso/${cursoId}`);
+        setTopicos(data.filter(t => t.activo));
+      } catch (e: any) {
+        console.error('Error cargando tópicos:', e);
+        setTopicos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTopicos();
+  }, [cursoId]);
+
+  if (loading) {
+    return <div className="text-sm text-gray-500">Cargando tópicos...</div>;
+  }
+
+  if (topicos.length === 0) {
+    return <div className="text-sm text-gray-500">No hay tópicos disponibles.</div>;
+  }
+
+  return (
+    <div>
+      <h3 className="text-lg font-semibold text-gray-800 mb-3">Tópicos</h3>
+      <div className="space-y-2">
+        {topicos.map(t => (
+          <button
+            key={t.id_topico}
+            onClick={() => navigate(`/topico/${t.id_topico}/editor`)}
+            className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+          >
+            <div className="font-medium text-gray-900">{t.titulo || `Tópico ${t.orden}`}</div>
+            {t.descripcion && (
+              <div className="text-sm text-gray-600 mt-1">{t.descripcion}</div>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const usuario = useMemo(() => {
@@ -125,6 +183,17 @@ export default function Dashboard() {
         } else if (usuario.tipo === 'docente') {
           try {
             const data = await fetchJSON<Curso[]>(`${baseApi}/cursos/docente/${usuario.id_usuario}`);
+            const cursosActivos = data.filter(c => c.activo !== false);
+            setCursos(cursosActivos);
+          } catch (e: any) {
+            console.error('Error cargando cursos:', e);
+            setError(e.message || 'Error cargando cursos');
+            setCursos([]);
+          }
+        } else if (usuario.tipo === 'editor') {
+          // Cargar todos los cursos para que el editor pueda ver los tópicos
+          try {
+            const data = await fetchJSON<Curso[]>(`${baseApi}/cursos`);
             const cursosActivos = data.filter(c => c.activo !== false);
             setCursos(cursosActivos);
           } catch (e: any) {
@@ -514,6 +583,30 @@ export default function Dashboard() {
                           Subir Material
                         </button>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {usuario.tipo === 'editor' && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Cursos Disponibles</h2>
+              {cursos.length === 0 ? (
+                <p className="text-gray-600">No hay cursos disponibles.</p>
+              ) : (
+                <div className="space-y-6">
+                  {cursos.map(c => (
+                    <div key={c.id_curso} className="bg-white border border-gray-200 rounded-lg p-6">
+                      <div className="mb-4">
+                        <div className="text-sm text-gray-500 font-mono mb-1">{c.codigo}</div>
+                        <div className="text-xl font-semibold text-gray-900 mb-2">{c.titulo || 'Curso'}</div>
+                        {c.descripcion && (
+                          <div className="text-gray-600 text-sm">{c.descripcion}</div>
+                        )}
+                      </div>
+                      <TopicosList cursoId={c.id_curso} />
                     </div>
                   ))}
                 </div>

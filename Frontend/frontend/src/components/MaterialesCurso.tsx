@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { io, Socket } from 'socket.io-client';
 
 type Material = {
   material_id: number;
@@ -21,7 +22,34 @@ type Curso = {
   descripcion: string | null;
 };
 
+type Topico = {
+  id_topico: number;
+  id_curso: number;
+  orden: number;
+  titulo: string | null;
+  descripcion: string | null;
+  activo: boolean;
+};
+
+type ComentarioEditor = {
+  id_comentario: number;
+  id_topico: number;
+  id_editor: number;
+  contenido: string;
+  tipo: 'comentario' | 'contenido' | 'material';
+  material_id: number | null;
+  activo: boolean;
+  creado_at: string;
+  actualizado_at: string | null;
+};
+
+type ElementoMaterialOComentario = (
+  | ({tipo: 'comentario'; fecha: Date} & ComentarioEditor)
+  | ({tipo: 'material'; fecha: Date} & Material)
+);
+
 const baseApi = 'http://localhost:5000/api';
+const socketUrl = 'http://localhost:5000';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -92,8 +120,11 @@ export default function MaterialesCurso() {
 
   const [materiales, setMateriales] = useState<Material[]>([]);
   const [curso, setCurso] = useState<Curso | null>(null);
+  const [topicos, setTopicos] = useState<Topico[]>([]);
+  const [comentarios, setComentarios] = useState<ComentarioEditor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     const token = authService.getToken();
@@ -108,17 +139,51 @@ export default function MaterialesCurso() {
       return;
     }
 
+    // Conectar WebSocket
+    const newSocket = io(socketUrl, {
+      transports: ['websocket', 'polling']
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Conectado al servidor WebSocket');
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Desconectado del servidor WebSocket');
+    });
+
+    setSocket(newSocket);
+
     const loadData = async () => {
       try {
         setError(null);
         
-        // Cargar información del curso
-        const cursoData = await fetchJSON<Curso>(`${baseApi}/cursos/${cursoId}`);
-        setCurso(cursoData);
+        const cursoIdNum = parseInt(cursoId);
         
-        // Cargar materiales del curso
-        const materialesData = await fetchJSON<Material[]>(`${baseApi}/materiales/curso/${cursoId}`);
+        // Cargar información del curso y tópicos
+        const [cursoData, topicosData, materialesData] = await Promise.all([
+          fetchJSON<Curso>(`${baseApi}/cursos/${cursoIdNum}`),
+          fetchJSON<Topico[]>(`${baseApi}/topicos/curso/${cursoIdNum}`),
+          fetchJSON<Material[]>(`${baseApi}/materiales/curso/${cursoIdNum}`)
+        ]);
+        
+        setCurso(cursoData);
+        setTopicos(topicosData.filter(t => t.activo));
         setMateriales(materialesData.filter(m => m.activo));
+
+        // Unirse a las salas de todos los tópicos
+        topicosData.forEach(topico => {
+          if (topico.activo) {
+            newSocket.emit('join-topico', topico.id_topico);
+          }
+        });
+
+        // Cargar comentarios de todos los tópicos
+        const comentariosPromises = topicosData
+          .filter(t => t.activo)
+          .map(t => fetchJSON<ComentarioEditor[]>(`${baseApi}/comentarios-editor/topico/${t.id_topico}`).catch(() => []));
+        const comentariosArrays = await Promise.all(comentariosPromises);
+        setComentarios(comentariosArrays.flat());
       } catch (e: any) {
         console.error('Error cargando datos:', e);
         setError(e.message || 'Error cargando materiales del curso');
@@ -128,13 +193,71 @@ export default function MaterialesCurso() {
     };
 
     loadData();
+
+    return () => {
+      if (newSocket) {
+        newSocket.disconnect();
+      }
+    };
   }, [cursoId, usuario, navigate]);
+
+  // Escuchar actualizaciones en tiempo real
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on('nuevo-comentario', (comentario: ComentarioEditor) => {
+      setComentarios(prev => {
+        // Evitar duplicados
+        if (prev.find(c => c.id_comentario === comentario.id_comentario)) {
+          return prev;
+        }
+        return [comentario, ...prev];
+      });
+    });
+
+    socket.on('comentario-actualizado', (comentario: ComentarioEditor) => {
+      setComentarios(prev => prev.map(c => 
+        c.id_comentario === comentario.id_comentario ? comentario : c
+      ));
+    });
+
+    socket.on('comentario-eliminado', (data: { id_comentario: number }) => {
+      setComentarios(prev => prev.filter(c => c.id_comentario !== data.id_comentario));
+    });
+
+    return () => {
+      socket.off('nuevo-comentario');
+      socket.off('comentario-actualizado');
+      socket.off('comentario-eliminado');
+    };
+  }, [socket]);
+
+  // socket realtime para materiales
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('nuevo-material', (material) => {
+      setMateriales(prev => {
+        if (prev.find(m => m.material_id === material.material_id)) return prev;
+        return [material, ...prev];
+      });
+    });
+    // Puedes agregar material-actualizado/material-eliminado aquí de ser necesario
+    return () => {
+      socket.off('nuevo-material');
+    };
+  }, [socket]);
 
   const handleBack = () => {
     navigate('/dashboard');
   };
 
   if (!usuario) return null;
+
+  const elementos: ElementoMaterialOComentario[] = useMemo(() => {
+    const comentariosElem: ElementoMaterialOComentario[] = comentarios.map(c => ({ ...c, tipo: 'comentario', fecha: new Date(c.creado_at) }));
+    const materialesElem: ElementoMaterialOComentario[] = materiales.map(m => ({ ...m, tipo: 'material', fecha: new Date(m.creado_at) }));
+    return [...comentariosElem, ...materialesElem].sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+  }, [comentarios, materiales]);
 
   return (
     <div className="min-h-screen" style={{ fontFamily: 'Poppins, sans-serif' }}>
@@ -180,126 +303,81 @@ export default function MaterialesCurso() {
           
           {loading ? (
             <div className="text-gray-600 text-sm mb-5">Cargando materiales...</div>
-          ) : materiales.length === 0 ? (
+          ) : elementos.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-              <p className="text-gray-600">No hay material disponible para este curso.</p>
+              <p className="text-gray-600">No hay material ni comentarios disponibles para este curso.</p>
             </div>
           ) : (
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Materiales</h2>
-              {materiales.map(m => (
-                <div key={m.material_id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className={`px-3 py-1 rounded text-xs font-semibold uppercase ${
-                      m.content_type === 'pdf' ? 'bg-red-100 text-red-700' :
-                      m.content_type === 'video' ? 'bg-purple-100 text-purple-700' :
-                      m.content_type === 'imagen' ? 'bg-green-100 text-green-700' :
-                      'bg-blue-100 text-blue-700'
-                    }`}>
-                      {m.content_type}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {new Date(m.creado_at).toLocaleDateString('es-ES', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
-                    </span>
-                  </div>
-                  
-                  {m.mime_type && (
-                    <div className="text-gray-700 font-medium mb-3">{m.mime_type}</div>
-                  )}
-                  
-                  {/* Mostrar contenido de Drive si es un link de Drive */}
-                  {m.ruta_archivo && isDriveLink(m.ruta_archivo) && (
-                    <div className="mb-4">
-                      {m.content_type === 'video' ? (
-                        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                          <iframe
-                            src={convertDriveUrl(m.ruta_archivo, m.content_type) || m.ruta_archivo}
-                            className="absolute top-0 left-0 w-full h-full rounded-lg border border-gray-300"
-                            allow="autoplay; encrypted-media"
-                            allowFullScreen
-                            title={`Video ${m.material_id}`}
-                            style={{ minHeight: '400px' }}
-                          />
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Material y Actualizaciones del Editor</h2>
+              
+              {elementos.map(elem => {
+                if (elem.tipo === 'comentario') {
+                  return (
+                    <div key={`c${elem.id_comentario}`} className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 rounded text-xs font-semibold uppercase bg-blue-100 text-blue-700">
+                            {elem.tipo}
+                          </span>
+                          {topicos && topicos.length > 0 && (
+                            <span className="text-xs text-gray-600">
+                              {topicos.find(t => t.id_topico === elem.id_topico)?.titulo || ''}
+                            </span>
+                          )}
                         </div>
-                      ) : m.content_type === 'imagen' ? (
-                        <div className="w-full">
-                          <img
-                            src={convertDriveUrl(m.ruta_archivo, m.content_type) || m.ruta_archivo}
-                            alt={m.mime_type || 'Imagen'}
-                            className="w-full h-auto rounded-lg max-h-96 object-contain border border-gray-300"
-                            onError={(e) => {
-                              // Si falla la carga, mostrar el iframe como fallback
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const parent = target.parentElement;
-                              if (parent && !parent.querySelector('iframe') && m.ruta_archivo) {
-                                const iframe = document.createElement('iframe');
-                                iframe.src = convertDriveUrl(m.ruta_archivo, m.content_type) || m.ruta_archivo;
-                                iframe.className = 'w-full h-96 rounded-lg border border-gray-300';
-                                iframe.setAttribute('allowFullscreen', 'true');
-                                parent.appendChild(iframe);
-                              }
-                            }}
-                          />
-                        </div>
-                      ) : m.content_type === 'pdf' ? (
-                        <div className="relative w-full" style={{ paddingBottom: '75%', minHeight: '600px' }}>
-                          <iframe
-                            src={convertDriveUrl(m.ruta_archivo, m.content_type) || m.ruta_archivo}
-                            className="absolute top-0 left-0 w-full h-full rounded-lg border border-gray-300"
-                            title={`PDF ${m.material_id}`}
-                          />
-                        </div>
-                      ) : (
-                        // Para otros tipos (otro), intentar mostrar en iframe
-                        <div className="relative w-full" style={{ paddingBottom: '56.25%', minHeight: '400px' }}>
-                          <iframe
-                            src={convertDriveUrl(m.ruta_archivo, m.content_type) || m.ruta_archivo}
-                            className="absolute top-0 left-0 w-full h-full rounded-lg border border-gray-300"
-                            allowFullScreen
-                            title={`Contenido ${m.material_id}`}
-                          />
+                        <span className="text-xs text-gray-500">
+                          {elem.fecha.toLocaleString('es-ES')}
+                        </span>
+                      </div>
+                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: elem.contenido }} />
+                    </div>
+                  );
+                } else {
+                  // Material
+                  return (
+                    <div key={`m${elem.material_id}`} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-4">
+                        <span className={`px-3 py-1 rounded text-xs font-semibold uppercase ${
+                          elem.content_type === 'pdf' ? 'bg-red-100 text-red-700' :
+                          elem.content_type === 'video' ? 'bg-purple-100 text-purple-700' :
+                          elem.content_type === 'imagen' ? 'bg-green-100 text-green-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {elem.content_type}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {elem.fecha.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </span>
+                      </div>
+                      {elem.mime_type && (
+                        <div className="text-gray-700 font-medium mb-3">{elem.mime_type}</div>
+                      )}
+                      {elem.ruta_archivo && isDriveLink(elem.ruta_archivo) && (
+                        <div className="mb-4">
+                          {elem.content_type === 'video' ? (
+                            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                              <iframe
+                                src={convertDriveUrl(elem.ruta_archivo, elem.content_type) || elem.ruta_archivo}
+                                allow="autoplay; encrypted-media"
+                                allowFullScreen
+                                title="Drive" style={{ position: 'absolute', top:0, left:0, width:'100%', height:'100%' }} />
+                            </div>
+                          ) : elem.content_type === 'pdf' ? (
+                            <iframe
+                              src={convertDriveUrl(elem.ruta_archivo, elem.content_type) || elem.ruta_archivo}
+                              style={{ width: '100%', height: 500 }}
+                              title="PDF preview" />
+                          ) : (
+                            <img src={elem.ruta_archivo} alt="Material" className="rounded-lg" />
+                          )}
                         </div>
                       )}
-                      <div className="mt-2 text-xs text-gray-500">
-                        <a 
-                          href={m.ruta_archivo} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          Abrir en Drive →
-                        </a>
-                      </div>
+                      {/* Otros detalles del material pueden ir aquí */}
                     </div>
-                  )}
-                  
-                  {m.ruta_archivo && !isDriveLink(m.ruta_archivo) && (
-                    <div className="text-sm text-gray-600 mb-3">
-                      <span className="font-semibold">Archivo:</span>{' '}
-                      <a 
-                        href={m.ruta_archivo} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        {m.ruta_archivo}
-                      </a>
-                    </div>
-                  )}
-                  
-                  {m.solucion_modelo && (
-                    <div className="text-sm text-gray-700 mt-4 p-4 bg-gray-50 rounded border border-gray-200">
-                      <span className="font-semibold">Contenido:</span>
-                      <div className="mt-2 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: m.solucion_modelo }} />
-                    </div>
-                  )}
-                </div>
-              ))}
+                  );
+                }
+              })}
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
 dotenv.config();
 console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
 console.log('PWD:', process.cwd());
@@ -19,10 +20,13 @@ import notaRoutes from './routes/notaRoutes';
 import diagnosticoRoutes from './routes/diagnosticoRoutes';
 import codeExecutorRoutes from './routes/codeExecutorRoutes';
 import authRoutes from './routes/authRoutes';
+import comentarioEditorRoutes from './routes/comentarioEditorRoutes';
 import pool from './db';
+import { initializeSocket } from './socket/socketServer';
 
 
 const app = express();
+const httpServer = createServer(app);
 const pORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
 app.use(cors({
@@ -57,6 +61,7 @@ app.use('/api/notas', notaRoutes);
 app.use('/api/diagnosticos', diagnosticoRoutes);
 app.use('/api/code-executor', codeExecutorRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/comentarios-editor', comentarioEditorRoutes);
 // Ruta adicional para Microsoft OAuth sin /api (para compatibilidad con callback URL)
 app.use('/auth', authRoutes);
 
@@ -75,7 +80,11 @@ async function comprobarDB() {
 }
 
 comprobarDB().then(() => {
-    app.listen(pORT, () => {
+    // Inicializar WebSocket
+    initializeSocket(httpServer);
+    
+    httpServer.listen(pORT, () => {
         console.log(`Servidor iniciado en puerto ${pORT}`);
+        console.log(`WebSocket server activo`);
     });
 });

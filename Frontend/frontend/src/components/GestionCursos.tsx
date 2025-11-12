@@ -36,6 +36,7 @@ export default function GestionCursos() {
 
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [docentes, setDocentes] = useState<Usuario[]>([]);
+  const [editores, setEditores] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -49,7 +50,8 @@ export default function GestionCursos() {
     codigo: '',
     titulo: '',
     descripcion: '',
-    docente_id: ''
+    docente_id: '',
+    editor_id: '' // Nuevo campo para el editor
   });
 
   const fullName = usuario ? `${usuario.nombre} ${usuario.apellido}`.trim() : '';
@@ -82,6 +84,9 @@ export default function GestionCursos() {
         const docentesData = usuariosData.filter(u => u.tipo === 'docente');
         console.log('Docentes filtrados:', docentesData);
         setDocentes(docentesData);
+        // Editores
+        const editoresData = usuariosData.filter(u => u.tipo === 'editor');
+        setEditores(editoresData);
       } catch (e: any) {
         setError(e.message || 'Error cargando datos');
       } finally {
@@ -98,20 +103,17 @@ export default function GestionCursos() {
       setError('El código del curso es obligatorio');
       return;
     }
-
     try {
       setCreating(true);
       setError(null);
-      
-      const cursoData = {
+      // Paso 1: Crear el curso usando el id de usuario como editor_id
+      const cursoData:any = {
         codigo: nuevoCurso.codigo.trim(),
         titulo: nuevoCurso.titulo.trim() || '',
         descripcion: nuevoCurso.descripcion.trim() || '',
-        docente_id: nuevoCurso.docente_id ? parseInt(nuevoCurso.docente_id) : null
+        docente_id: nuevoCurso.docente_id ? parseInt(nuevoCurso.docente_id) : null,
+        editor_id: nuevoCurso.editor_id ? parseInt(nuevoCurso.editor_id) : null,
       };
-
-      console.log('Enviando datos del curso:', cursoData);
-
       await fetchJSON<Curso>(`${baseApi}/cursos`, {
         method: 'POST',
         headers: {
@@ -120,7 +122,21 @@ export default function GestionCursos() {
         body: JSON.stringify(cursoData)
       });
 
-      // Recargar todos los cursos para obtener el estado actualizado de todos
+      // Paso 2: Si envió editor, crear el registro en editores con el id del usuario tipo editor
+      if (cursoData.editor_id) {
+        try {
+          await fetchJSON(`${baseApi}/editores`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id_docente: cursoData.editor_id })
+          });
+        } catch (e2) {
+          setError('Curso creado, pero no se pudo registrar el editor en la tabla editores.');
+        }
+      }
+      // Recargar cursos
       const cursosData = await fetchJSON<Curso[]>(`${baseApi}/cursos`);
       const cursosOrdenados = [...cursosData].sort((a, b) => {
         const fechaA = new Date(a.fecha_creacion).getTime();
@@ -129,9 +145,8 @@ export default function GestionCursos() {
       });
       setCursos(cursosOrdenados);
       setSuccess('Curso creado exitosamente');
-      setNuevoCurso({ codigo: '', titulo: '', descripcion: '', docente_id: '' });
+      setNuevoCurso({ codigo: '', titulo: '', descripcion: '', docente_id: '', editor_id: '' });
       setShowCreateForm(false);
-      
       setTimeout(() => setSuccess(null), 3000);
     } catch (e: any) {
       setError(e.message || 'Error creando curso');
@@ -395,6 +410,25 @@ export default function GestionCursos() {
                       {docentes.map(docente => (
                         <option key={docente.id_usuario} value={docente.id_usuario}>
                           {docente.nombre} {docente.apellido}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* Selector de Editor */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-semibold mb-2">
+                      Asignar Editor
+                    </label>
+                    <select
+                      name="editor_id"
+                      value={nuevoCurso.editor_id}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    >
+                      <option value="">Seleccionar editor (opcional) - {editores.length} disponibles</option>
+                      {editores.map(editor => (
+                        <option key={editor.id_usuario} value={editor.id_usuario}>
+                          {editor.nombre} {editor.apellido}
                         </option>
                       ))}
                     </select>

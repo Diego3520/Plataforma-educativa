@@ -9,6 +9,7 @@ import Dashboard from './components/Dashboard';
 import GestionCursos from './components/GestionCursos';
 import DocenteCursoView from './components/DocenteCursoView';
 import MaterialesCurso from './components/MaterialesCurso';
+import EditorTopicoView from './components/EditorTopicoView';
 
 function App() {
   const [showWelcome, setShowWelcome] = useState(true);
@@ -66,6 +67,12 @@ function App() {
       <Route 
         path="/curso/:cursoId/materiales" 
         element={<MaterialesCurso />} 
+      />
+
+      {/* Vista de tópico para editor */}
+      <Route 
+        path="/topico/:topicoId/editor" 
+        element={<EditorTopicoView />} 
       />
 
       {/* Ruta principal - Home */}

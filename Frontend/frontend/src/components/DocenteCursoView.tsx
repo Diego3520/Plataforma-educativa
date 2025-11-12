@@ -32,7 +32,6 @@ type Topico = {
 
 type Material = {
   material_id: number;
-  id_curso?: number;
   solucion_modelo: string | null;
   ruta_archivo: string | null;
   tamano_bytes: number | null;
@@ -422,7 +421,7 @@ export default function DocenteCursoView() {
           </button>
           <button
             onClick={() => {
-              setMaterialForm(prev => ({ ...prev, solucion_modelo: '', content_type: 'otro', activo: true }));
+              setMaterialForm({ solucion_modelo: '', content_type: 'otro', activo: true });
               setShowMaterialModal(true);
             }}
             className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700"

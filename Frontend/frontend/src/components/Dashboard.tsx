@@ -16,7 +16,24 @@ type Curso = {
   codigo: string;
   titulo: string | null;
   descripcion: string | null;
+  docente_id: number | null;
+  activo: boolean;
+  fecha_creacion?: string;
 };
+
+type Material = {
+  material_id: number;
+  solucion_modelo: string | null;
+  ruta_archivo: string | null;
+  tamano_bytes: number | null;
+  mime_type: string | null;
+  content_type: 'pdf' | 'video' | 'imagen' | 'otro';
+  creado_at: string;
+  activo: boolean;
+  id_curso: number;
+};
+
+const baseApi = 'http://localhost:5000/api';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -29,38 +46,56 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const usuarioRaw = authService.getUser();
-  const baseApi = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api';
-
-  // Convertir id_usuario a número si viene como string
-  const usuario = usuarioRaw ? {
-    ...usuarioRaw,
-    id_usuario: typeof usuarioRaw.id_usuario === 'string' 
-      ? parseInt(usuarioRaw.id_usuario) 
-      : usuarioRaw.id_usuario
-  } as Usuario : null;
+  const usuario = useMemo(() => {
+    const usuarioRaw = authService.getUser();
+    if (!usuarioRaw) return null;
+    return {
+      ...usuarioRaw,
+      id_usuario: typeof usuarioRaw.id_usuario === 'string' 
+        ? parseInt(usuarioRaw.id_usuario) 
+        : usuarioRaw.id_usuario
+    } as Usuario;
+  }, []);
 
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showActiveModal, setShowActiveModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
   const [selectedNewRole, setSelectedNewRole] = useState<Usuario['tipo'] | null>(null);
   const [selectedActiveState, setSelectedActiveState] = useState<boolean | null>(null);
+  
+  // Estados para el modal de inscripción
+  const [showInscripcionModal, setShowInscripcionModal] = useState(false);
+  const [codigoCurso, setCodigoCurso] = useState('');
+  const [submittingInscripcion, setSubmittingInscripcion] = useState(false);
+  
+  // Estados para el modal de material
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [submittingMaterial, setSubmittingMaterial] = useState(false);
+  const [selectedCursoIdForMaterial, setSelectedCursoIdForMaterial] = useState<number | null>(null);
+  const [solucionModelo, setSolucionModelo] = useState('');
+  const [rutaArchivo, setRutaArchivo] = useState('');
+  const [descripcionMaterial, setDescripcionMaterial] = useState('');
+  const [contentType, setContentType] = useState<'pdf' | 'video' | 'imagen' | 'otro'>('pdf');
+  const [crearTarea, setCrearTarea] = useState(false);
+  const [tareaFechaPublicacion, setTareaFechaPublicacion] = useState(new Date().toISOString().split('T')[0]);
+  const [tareaFechaLimite, setTareaFechaLimite] = useState('');
+  const [tareaMaterialId, setTareaMaterialId] = useState('');
+  const [tareaNotaMax, setTareaNotaMax] = useState('');
+  const [tareaSolucionAportada, setTareaSolucionAportada] = useState('');
+  const [tareaIdTopico, setTareaIdTopico] = useState('');
+  const [topicosCurso, setTopicosCurso] = useState<any[]>([]);
+  const [materialesCurso, setMaterialesCurso] = useState<Material[]>([]);
 
   const fullName = useMemo(() => {
     if (!usuario) return '';
     return `${usuario.nombre} ${usuario.apellido}`.trim();
   }, [usuario]);
-
-  // Debug: mostrar información del usuario
-  console.log('Dashboard - Usuario raw:', usuarioRaw);
-  console.log('Dashboard - Usuario procesado:', usuario);
-  console.log('Dashboard - Tipo:', usuario?.tipo);
-  console.log('Dashboard - ID:', usuario?.id_usuario);
 
   useEffect(() => {
     const token = authService.getToken();
@@ -72,33 +107,37 @@ export default function Dashboard() {
     const load = async () => {
       try {
         setError(null);
-        console.log('Dashboard - Cargando datos para tipo:', usuario.tipo);
         
         if (usuario.tipo === 'alumno') {
-          console.log('Dashboard - Cargando cursos para alumno');
-          const data = await fetchJSON<Curso[]>(`${baseApi}/inscrito/usuario/${usuario.id_usuario}`);
-          // El endpoint de inscripciones puede devolver objetos de inscripción; mapeamos a cursos cuando sea necesario
+          const data = await fetchJSON<any[]>(`${baseApi}/inscritos/usuario/${usuario.id_usuario}`);
           const maybeCursos: any[] = Array.isArray(data) ? (data as any[]) : [];
+          // El endpoint ahora devuelve información completa del curso
           const mapped = maybeCursos.map((it: any) => ({
-            id_curso: it.id_topico ?? it.id_curso ?? it.topico_id ?? it.curso_id ?? Math.random(),
+            id_curso: it.id_curso ?? it.curso_id ?? Math.random(),
             codigo: it.codigo ?? it.curso_codigo ?? 'CURSO',
-            titulo: it.titulo ?? it.curso_titulo ?? null,
-            descripcion: it.descripcion ?? it.curso_descripcion ?? null,
-          }));
+            titulo: it.curso_titulo ?? it.titulo ?? null,
+            descripcion: it.curso_descripcion ?? it.descripcion ?? null,
+            docente_id: it.docente_id ?? null,
+            activo: it.curso_activo ?? it.activo ?? true,
+            fecha_creacion: it.fecha_creacion
+          })) as Curso[];
           setCursos(mapped);
         } else if (usuario.tipo === 'docente') {
-          console.log('Dashboard - Cargando cursos para docente');
-          const data = await fetchJSON<Curso[]>(`${baseApi}/curso/docente/${usuario.id_usuario}`);
-          setCursos(data);
+          try {
+            const data = await fetchJSON<Curso[]>(`${baseApi}/cursos/docente/${usuario.id_usuario}`);
+            const cursosActivos = data.filter(c => c.activo !== false);
+            setCursos(cursosActivos);
+          } catch (e: any) {
+            console.error('Error cargando cursos:', e);
+            setError(e.message || 'Error cargando cursos');
+            setCursos([]);
+          }
         } else if (usuario.tipo === 'admin') {
-          console.log('Dashboard - Cargando usuarios para admin');
           const list = await fetchJSON<Usuario[]>(`${baseApi}/usuarios`);
           setUsuarios(list);
-        } else {
-          console.log('Dashboard - Tipo no reconocido:', usuario.tipo);
         }
       } catch (e: any) {
-        console.error('Dashboard - Error:', e);
+        console.error('Error:', e);
         setError(e.message || 'Error cargando datos');
       } finally {
         setLoading(false);
@@ -106,7 +145,175 @@ export default function Dashboard() {
     };
 
     load();
-  }, [usuario, baseApi]);
+  }, [usuario]);
+
+  const handleSubirMaterial = async () => {
+    if (!selectedCursoIdForMaterial) {
+      setError('No se ha seleccionado un curso.');
+      return;
+    }
+
+    if (!rutaArchivo.trim()) {
+      setError('La ruta del archivo es obligatoria.');
+      return;
+    }
+
+    try {
+      setSubmittingMaterial(true);
+      setError(null);
+
+      // Crear el material
+      const payload = {
+        id_curso: selectedCursoIdForMaterial,
+        solucion_modelo: solucionModelo.trim() || null,
+        ruta_archivo: rutaArchivo.trim(),
+        tamano_bytes: null,
+        mime_type: descripcionMaterial.trim() || null,
+        content_type: contentType,
+        activo: true
+      };
+
+      const nuevoMaterial = await fetchJSON<Material>(`${baseApi}/materiales`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // Si se marcó crear tarea, crear la tarea también
+      if (crearTarea) {
+        const topicoId = tareaIdTopico 
+          ? parseInt(tareaIdTopico)
+          : (topicosCurso.length > 0 ? topicosCurso[0].id_topico : null);
+
+        if (!topicoId) {
+          setError('No hay tópicos disponibles para crear la tarea');
+          setSubmittingMaterial(false);
+          return;
+        }
+
+        await fetchJSON(`${baseApi}/tareas`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authService.getToken()}`
+          },
+          body: JSON.stringify({
+            id_topico: topicoId,
+            fecha_publicacion: tareaFechaPublicacion,
+            fecha_limite: tareaFechaLimite || null,
+            material_id: tareaMaterialId ? parseInt(tareaMaterialId) : nuevoMaterial.material_id,
+            nota_max: tareaNotaMax ? parseFloat(tareaNotaMax) : null,
+            solucion_aportada: tareaSolucionAportada || null
+          }),
+        });
+      }
+
+      closeMaterialModal();
+      setSuccess(crearTarea ? 'Material y tarea creados exitosamente' : 'Material subido exitosamente');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (e: any) {
+      setError(e.message || 'Error al subir el material');
+    } finally {
+      setSubmittingMaterial(false);
+    }
+  };
+
+  const openMaterialModal = async (cursoId: number) => {
+    setSelectedCursoIdForMaterial(cursoId);
+    setShowMaterialModal(true);
+    
+    // Cargar tópicos y materiales del curso
+    try {
+      const [topicosData, materialesData] = await Promise.all([
+        fetchJSON<any[]>(`${baseApi}/topicos/curso/${cursoId}`).catch(() => []),
+        fetchJSON<Material[]>(`${baseApi}/materiales/curso/${cursoId}`).catch(() => [])
+      ]);
+      setTopicosCurso(topicosData);
+      setMaterialesCurso(materialesData);
+    } catch (e: any) {
+      console.error('Error cargando tópicos/materiales:', e);
+    }
+  };
+
+  const handleCursoClick = (cursoId: number) => {
+    // Navegar a la pantalla de materiales
+    navigate(`/curso/${cursoId}/materiales`);
+  };
+
+  const handleInscribirse = async () => {
+    if (!codigoCurso.trim()) {
+      setError('Por favor ingresa un código de curso');
+      return;
+    }
+
+    if (!usuario) {
+      setError('Usuario no encontrado');
+      return;
+    }
+
+    try {
+      setSubmittingInscripcion(true);
+      setError(null);
+
+      await fetchJSON(`${baseApi}/inscritos/inscribirse`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`
+        },
+        body: JSON.stringify({
+          codigo_curso: codigoCurso.trim(),
+          id_usuario: usuario.id_usuario
+        }),
+      });
+
+      setSuccess('¡Te has inscrito exitosamente al curso!');
+      setShowInscripcionModal(false);
+      setCodigoCurso('');
+      
+      // Recargar los cursos del usuario
+      const data = await fetchJSON<any[]>(`${baseApi}/inscritos/usuario/${usuario.id_usuario}`);
+      const maybeCursos: any[] = Array.isArray(data) ? (data as any[]) : [];
+      const mapped = maybeCursos.map((it: any) => ({
+        id_curso: it.id_curso ?? it.curso_id ?? Math.random(),
+        codigo: it.codigo ?? it.curso_codigo ?? 'CURSO',
+        titulo: it.curso_titulo ?? it.titulo ?? null,
+        descripcion: it.curso_descripcion ?? it.descripcion ?? null,
+        docente_id: it.docente_id ?? null,
+        activo: it.curso_activo ?? it.activo ?? true,
+        fecha_creacion: it.fecha_creacion
+      })) as Curso[];
+      setCursos(mapped);
+      
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (e: any) {
+      console.error('Error inscribiéndose:', e);
+      setError(e.message || 'Error al inscribirse al curso');
+    } finally {
+      setSubmittingInscripcion(false);
+    }
+  };
+
+  const closeMaterialModal = () => {
+    setShowMaterialModal(false);
+    setSelectedCursoIdForMaterial(null);
+    setSolucionModelo('');
+    setRutaArchivo('');
+    setDescripcionMaterial('');
+    setContentType('pdf');
+    setCrearTarea(false);
+    setTareaFechaPublicacion(new Date().toISOString().split('T')[0]);
+    setTareaFechaLimite('');
+    setTareaMaterialId('');
+    setTareaNotaMax('');
+    setTareaSolucionAportada('');
+    setTareaIdTopico('');
+    setTopicosCurso([]);
+    setMaterialesCurso([]);
+  };
 
   const handleChangeRole = async () => {
     if (!selectedUser || !selectedNewRole) return;
@@ -207,7 +414,14 @@ export default function Dashboard() {
                 GESTIONAR USUARIOS
               </button>
               <button
-                onClick={() => navigate('/gestion-cursos')}
+                onClick={() => {
+                  try {
+                    navigate('/gestion-cursos');
+                  } catch (e: any) {
+                    console.error('Error navegando a gestion-cursos:', e);
+                    setError('Error al acceder a la gestión de cursos');
+                  }
+                }}
                 className="px-4 py-2 font-semibold text-gray-700 hover:text-blue-900 transition-colors"
               >
                 GESTIONAR CURSOS
@@ -228,44 +442,81 @@ export default function Dashboard() {
           {error && (
             <div className="text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg mb-5 text-sm">{error}</div>
           )}
+          {success && (
+            <div className="text-green-700 bg-green-50 border border-green-200 p-3 rounded-lg mb-5 text-sm">{success}</div>
+          )}
           {loading && (
             <div className="text-gray-600 text-sm mb-5">Cargando...</div>
           )}
 
           {usuario.tipo === 'alumno' && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Mis cursos</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">Mis Cursos</h2>
+                <button
+                  onClick={() => setShowInscripcionModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  Inscribirme a Curso
+                </button>
+              </div>
               {cursos.length === 0 ? (
                 <p className="text-gray-600">No se encontraron cursos.</p>
               ) : (
-                <ul className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {cursos.map(c => (
-                    <li key={c.id_curso} className="p-4 border border-gray-200 rounded-lg bg-white">
-                      <div className="text-sm text-gray-500">{c.codigo}</div>
-                      <div className="text-lg font-semibold">{c.titulo || 'Curso'}</div>
-                      {c.descripcion && <div className="text-gray-600 text-sm mt-1">{c.descripcion}</div>}
-                    </li>
+                    <div
+                      key={c.id_curso}
+                      onClick={() => handleCursoClick(c.id_curso)}
+                      className="p-5 border-2 rounded-lg bg-white shadow-sm transition-all cursor-pointer border-gray-200 hover:border-blue-300 hover:shadow-md"
+                    >
+                      <div className="text-sm text-gray-500 font-mono mb-1">{c.codigo}</div>
+                      <div className="text-lg font-semibold text-gray-900 mb-2">{c.titulo || 'Curso'}</div>
+                      {c.descripcion && (
+                        <div className="text-gray-600 text-sm line-clamp-2">{c.descripcion}</div>
+                      )}
+                    </div>
                   ))}
-                </ul>
+                </div>
               )}
+
             </div>
           )}
 
           {usuario.tipo === 'docente' && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Cursos para administrar</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Mis Cursos</h2>
               {cursos.length === 0 ? (
                 <p className="text-gray-600">No tienes cursos asignados.</p>
               ) : (
-                <ul className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {cursos.map(c => (
-                    <li key={c.id_curso} className="p-4 border border-gray-200 rounded-lg bg-white">
-                      <div className="text-sm text-gray-500">{c.codigo}</div>
-                      <div className="text-lg font-semibold">{c.titulo || 'Curso'}</div>
-                      {c.descripcion && <div className="text-gray-600 text-sm mt-1">{c.descripcion}</div>}
-                    </li>
+                    <div 
+                      key={c.id_curso}
+                      className="p-5 border border-gray-200 rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="text-sm text-gray-500 font-mono">{c.codigo}</div>
+                        <div className="text-lg font-semibold text-gray-900 mt-1">{c.titulo || 'Curso'}</div>
+                        {c.descripcion && <div className="text-gray-600 text-sm mt-2 line-clamp-2 h-10">{c.descripcion}</div>}
+                      </div>
+                      <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                        <button
+                          onClick={() => navigate(`/curso/${c.id_curso}`)}
+                          className="w-full text-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                        >
+                          Ver Curso
+                        </button>
+                        <button
+                          onClick={() => openMaterialModal(c.id_curso)}
+                          className="w-full text-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                          Subir Material
+                        </button>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               )}
             </div>
           )}
@@ -327,9 +578,186 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Modal para subir material */}
+      {showMaterialModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 shadow-xl">
+            <h3 className="text-xl font-bold mb-5">Subir Material para el Curso</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="content_type" className="block text-sm font-semibold mb-1 text-gray-700">
+                  Tipo de Contenido <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="content_type"
+                  value={contentType}
+                  onChange={(e) => setContentType(e.target.value as 'pdf' | 'video' | 'imagen' | 'otro')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="pdf">PDF</option>
+                  <option value="video">Video</option>
+                  <option value="imagen">Imagen</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="ruta_archivo" className="block text-sm font-semibold mb-1 text-gray-700">
+                  Ruta del Archivo <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="ruta_archivo"
+                  type="text"
+                  value={rutaArchivo}
+                  onChange={(e) => setRutaArchivo(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ej: /documentos/clase1.pdf"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="descripcion_material" className="block text-sm font-semibold mb-1 text-gray-700">
+                  Descripción del Material
+                </label>
+                <textarea
+                  id="descripcion_material"
+                  value={descripcionMaterial}
+                  onChange={(e) => setDescripcionMaterial(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  placeholder="Ej: Material de introducción al curso"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="solucion_modelo" className="block text-sm font-semibold mb-1 text-gray-700">
+                  Solución Modelo (Opcional)
+                </label>
+                <input
+                  id="solucion_modelo"
+                  type="text"
+                  value={solucionModelo}
+                  onChange={(e) => setSolucionModelo(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ej: /soluciones/ejercicio1.pdf"
+                />
+              </div>
+
+              {/* Sección de Tarea */}
+              <div className="border-t pt-4 mt-4">
+                <label className="flex items-center gap-2 mb-4">
+                  <input
+                    type="checkbox"
+                    checked={crearTarea}
+                    onChange={(e) => setCrearTarea(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-semibold">Crear tarea asociada</span>
+                </label>
+
+                {crearTarea && (
+                  <div className="space-y-4 pl-6 border-l-2 border-blue-200">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">Tópico</label>
+                      <select
+                        value={tareaIdTopico}
+                        onChange={(e) => setTareaIdTopico(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Seleccionar tópico (se usará el primero si no se selecciona)</option>
+                        {topicosCurso.map(t => (
+                          <option key={t.id_topico} value={t.id_topico}>
+                            {t.titulo || `Tópico ${t.orden}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold mb-2">Fecha de Publicación</label>
+                        <input
+                          type="date"
+                          value={tareaFechaPublicacion}
+                          min={new Date().toISOString().split('T')[0]}
+                          onChange={(e) => setTareaFechaPublicacion(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-2">Fecha Límite</label>
+                        <input
+                          type="date"
+                          value={tareaFechaLimite}
+                          min={new Date().toISOString().split('T')[0]}
+                          onChange={(e) => setTareaFechaLimite(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">Material Asociado (Opcional)</label>
+                      <select
+                        value={tareaMaterialId}
+                        onChange={(e) => setTareaMaterialId(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Ninguno (se usará el material actual si no se selecciona)</option>
+                        {materialesCurso.map(m => (
+                          <option key={m.material_id} value={m.material_id}>
+                            {m.mime_type || `Material ${m.material_id}`} - {m.content_type}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">Nota Máxima</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={tareaNotaMax}
+                        onChange={(e) => setTareaNotaMax(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Ej: 100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">Solución Aportada</label>
+                      <textarea
+                        value={tareaSolucionAportada}
+                        onChange={(e) => setTareaSolucionAportada(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Descripción o solución modelo de la tarea..."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleSubirMaterial}
+                disabled={submittingMaterial || !rutaArchivo.trim()}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                {submittingMaterial ? 'Subiendo...' : crearTarea ? 'Subir Material y Crear Tarea' : 'Subir Material'}
+              </button>
+              <button
+                onClick={closeMaterialModal}
+                disabled={submittingMaterial}
+                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 disabled:bg-gray-400 transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal para cambiar rol */}
       {showRoleModal && selectedUser && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50" style={{ fontFamily: 'Poppins, sans-serif' }}>
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border-2 border-blue-900">
             <h3 className="text-xl font-bold mb-4">Cambiar Tipo de Usuario</h3>
             <p className="mb-4">Usuario: <span className="font-semibold">{selectedUser.nombre} {selectedUser.apellido}</span></p>
@@ -369,7 +797,7 @@ export default function Dashboard() {
 
       {/* Modal para activar/desactivar */}
       {showActiveModal && selectedUser && selectedActiveState !== null && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50" style={{ fontFamily: 'Poppins, sans-serif' }}>
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border-2 border-blue-900">
             <h3 className="text-xl font-bold mb-4">¿Estás seguro?</h3>
             <p className="mb-4">
@@ -397,8 +825,56 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Modal para inscribirse a curso */}
+      {showInscripcionModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-xl font-bold mb-5">Inscribirme a un Curso</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="codigo_curso" className="block text-sm font-semibold mb-1 text-gray-700">
+                  Código del Curso <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="codigo_curso"
+                  type="text"
+                  value={codigoCurso}
+                  onChange={(e) => setCodigoCurso(e.target.value.toUpperCase())}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ej: CURSO001"
+                  required
+                  disabled={submittingInscripcion}
+                  autoFocus
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Ingresa el código del curso al que deseas inscribirte
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleInscribirse}
+                disabled={submittingInscripcion || !codigoCurso.trim()}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                {submittingInscripcion ? 'Inscribiendo...' : 'Inscribirme'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowInscripcionModal(false);
+                  setCodigoCurso('');
+                  setError(null);
+                }}
+                disabled={submittingInscripcion}
+                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 disabled:bg-gray-400 transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-

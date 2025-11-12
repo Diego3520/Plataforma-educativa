@@ -33,6 +33,7 @@ router.post('/',
   body('evaluador_id').optional({ nullable: true }).isInt().withMessage('evaluador_id debe ser entero'),
   body('titulo').optional({ nullable: true }).isString().withMessage('titulo debe ser texto'),
   body('descripcion').optional({ nullable: true }).isString().withMessage('descripcion debe ser texto'),
+  body('activo').optional().isBoolean().withMessage('activo debe ser booleano'),
   cursoController.crear
 );
 
@@ -44,6 +45,7 @@ router.put('/:id',
   body('evaluador_id').optional({ nullable: true }).isInt().withMessage('evaluador_id debe ser entero'),
   body('titulo').optional({ nullable: true }).isString().withMessage('titulo debe ser texto'),
   body('descripcion').optional({ nullable: true }).isString().withMessage('descripcion debe ser texto'),
+  body('activo').optional().isBoolean().withMessage('activo debe ser booleano'),
   cursoController.actualizar
 );
 

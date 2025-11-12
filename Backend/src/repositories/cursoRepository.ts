@@ -3,7 +3,7 @@ import { curso } from '../models/curso';
 
 export class cursoRepository {
   async findAll(): Promise<curso[]> {
-    const res = await pool.query('SELECT * FROM cursos ORDER BY id_curso');
+    const res = await pool.query('SELECT * FROM cursos ORDER BY fecha_creacion ASC');
     return res.rows;
   }
 
@@ -28,6 +28,19 @@ export class cursoRepository {
   async findByEvaluadorId(evaluadorId: number): Promise<curso[]> {
     const res = await pool.query('SELECT * FROM cursos WHERE evaluador_id = $1 ORDER BY id_curso', [evaluadorId]);
     return res.rows;
+  }
+
+  async findByActivo(activo: boolean): Promise<curso[]> {
+    const res = await pool.query('SELECT * FROM cursos WHERE activo = $1', [activo]);
+    return res.rows;
+  }
+
+  async setAllInactive(excludeId?: number): Promise<void> {
+    if (excludeId) {
+      await pool.query('UPDATE cursos SET activo = false WHERE id_curso != $1', [excludeId]);
+    } else {
+      await pool.query('UPDATE cursos SET activo = false');
+    }
   }
 
   async create(data: Omit<curso, 'id_curso' | 'fecha_creacion'>): Promise<curso> {

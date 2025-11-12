@@ -16,6 +16,12 @@ router.get('/usuario/:usuarioId',
   inscritoController.verPorUsuario
 );
 
+router.post('/inscribirse',
+  body('codigo_curso').notEmpty().withMessage('codigo_curso es requerido').isString().withMessage('codigo_curso debe ser texto'),
+  body('id_usuario').isInt().withMessage('id_usuario debe ser entero'),
+  inscritoController.inscribirsePorCodigo
+);
+
 router.get('/topico/:topicoId',
   param('topicoId').isInt().withMessage('ID de topico debe ser entero'),
   inscritoController.verPorTopico

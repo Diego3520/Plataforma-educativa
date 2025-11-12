@@ -16,7 +16,8 @@ type Curso = {
   titulo: string | null;
   descripcion: string | null;
   docente_id: number | null;
-  activo?: boolean;
+  fecha_creacion: string;
+  activo: boolean;
 };
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -42,9 +43,7 @@ export default function GestionCursos() {
   const [creating, setCreating] = useState(false);
   const [asignandoDocente, setAsignandoDocente] = useState<number | null>(null);
   const [cursoEditar, setCursoEditar] = useState<Curso | null>(null);
-  const [showActiveModal, setShowActiveModal] = useState(false);
-  const [selectedCurso, setSelectedCurso] = useState<Curso | null>(null);
-  const [selectedActiveState, setSelectedActiveState] = useState<boolean | null>(null);
+
 
   const [nuevoCurso, setNuevoCurso] = useState({
     codigo: '',
@@ -70,7 +69,14 @@ export default function GestionCursos() {
           fetchJSON<Usuario[]>(`${baseApi}/usuarios`)
         ]);
         
-        setCursos(cursosData);
+        // Ordenar cursos: más antiguo al final, más reciente primero
+        const cursosOrdenados = [...cursosData].sort((a, b) => {
+          const fechaA = a.fecha_creacion ? new Date(a.fecha_creacion).getTime() : 0;
+          const fechaB = b.fecha_creacion ? new Date(b.fecha_creacion).getTime() : 0;
+          return fechaB - fechaA; // Más reciente primero
+        });
+        
+        setCursos(cursosOrdenados);
         console.log('Usuarios cargados:', usuariosData);
         // Filtrar solo docentes
         const docentesData = usuariosData.filter(u => u.tipo === 'docente');
@@ -106,7 +112,7 @@ export default function GestionCursos() {
 
       console.log('Enviando datos del curso:', cursoData);
 
-      const nuevoCursoCreado = await fetchJSON<Curso>(`${baseApi}/cursos`, {
+      await fetchJSON<Curso>(`${baseApi}/cursos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +120,14 @@ export default function GestionCursos() {
         body: JSON.stringify(cursoData)
       });
 
-      setCursos(prev => [...prev, nuevoCursoCreado]);
+      // Recargar todos los cursos para obtener el estado actualizado de todos
+      const cursosData = await fetchJSON<Curso[]>(`${baseApi}/cursos`);
+      const cursosOrdenados = [...cursosData].sort((a, b) => {
+        const fechaA = new Date(a.fecha_creacion).getTime();
+        const fechaB = new Date(b.fecha_creacion).getTime();
+        return fechaB - fechaA;
+      });
+      setCursos(cursosOrdenados);
       setSuccess('Curso creado exitosamente');
       setNuevoCurso({ codigo: '', titulo: '', descripcion: '', docente_id: '' });
       setShowCreateForm(false);
@@ -193,32 +206,30 @@ export default function GestionCursos() {
     }
   };
 
-  const handleToggleActive = async () => {
-    if (!selectedCurso || selectedActiveState === null) return;
-    
+
+
+  const handleEstadoChange = async (cursoId: number, activo: boolean) => {
     try {
-      const cursoActualizado = await fetchJSON<Curso>(`${baseApi}/cursos/${selectedCurso.id_curso}`, {
+      await fetchJSON<Curso>(`${baseApi}/cursos/${cursoId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ activo: selectedActiveState }),
+        body: JSON.stringify({ activo: activo }),
       });
-      setCursos(prev => prev.map(c => c.id_curso === selectedCurso.id_curso ? cursoActualizado : c));
-      setShowActiveModal(false);
-      setSelectedCurso(null);
-      setSelectedActiveState(null);
+      // Recargar todos los cursos para obtener el estado actualizado de todos
+      const cursosData = await fetchJSON<Curso[]>(`${baseApi}/cursos`);
+      const cursosOrdenados = [...cursosData].sort((a, b) => {
+        const fechaA = new Date(a.fecha_creacion).getTime();
+        const fechaB = new Date(b.fecha_creacion).getTime();
+        return fechaB - fechaA;
+      });
+      setCursos(cursosOrdenados);
       setSuccess('Estado del curso actualizado');
       setTimeout(() => setSuccess(null), 3000);
     } catch (e: any) {
       setError(e.message || 'No se pudo actualizar el estado');
     }
-  };
-
-  const openActiveModal = (curso: Curso, newState: boolean) => {
-    setSelectedCurso(curso);
-    setSelectedActiveState(newState);
-    setShowActiveModal(true);
   };
 
   const [editingCurso, setEditingCurso] = useState<Curso | null>(null);
@@ -445,34 +456,43 @@ export default function GestionCursos() {
               <p className="text-gray-600">No hay cursos creados.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {cursos.map(curso => {
+                {cursos.map((curso, index) => {
+                  const isInactive = !curso.activo;
                   const docente = docentes.find(d => d.id_usuario === curso.docente_id);
-                  const isActive = curso.activo !== false;
+                  const esMasAntiguo = index === cursos.length - 1;
+                  
+                  const displayInfo = curso.activo 
+                    ? { text: '✓ Activo', bg: 'bg-green-100', textC: 'text-green-700' }
+                    : { text: '✗ Inactivo', bg: 'bg-gray-100', textC: 'text-gray-600' };
+
                   return (
                     <div
                       key={curso.id_curso}
                       className={`border rounded-lg p-4 shadow-sm transition-all hover:shadow-md ${
-                        !isActive ? 'bg-gray-100 opacity-60' : 'bg-white cursor-pointer'
-                      }`}
+                        isInactive ? 'bg-gray-100 opacity-60' : 'bg-white cursor-pointer'
+                      } ${esMasAntiguo ? 'border-2 border-blue-500' : ''}`}
                       onClick={() => {
-                        if (isActive) handleEditCurso(curso);
+                        if (!isInactive) handleEditCurso(curso);
                       }}
                     >
                       <div className="flex justify-between items-start mb-3">
-                        <div className="font-mono text-blue-600 font-semibold text-lg">{curso.codigo}</div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openActiveModal(curso, !isActive);
-                          }}
-                          className={`px-3 py-1 rounded text-xs font-semibold ${
-                            isActive
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}
+                        <div className="flex flex-col">
+                          <div className="font-mono text-blue-600 font-semibold text-lg">{curso.codigo}</div>
+                          {esMasAntiguo && (
+                            <div className="text-xs font-bold text-blue-700 mt-1 bg-blue-100 px-2 py-1 rounded">
+                              CURSO INICIAL
+                            </div>
+                          )}
+                        </div>
+                        <select
+                          value={curso.activo ? 'activo' : 'inactivo'}
+                          onChange={(e) => handleEstadoChange(curso.id_curso, e.target.value === 'activo')}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`px-3 py-1 rounded text-xs font-semibold ${displayInfo.bg} ${displayInfo.textC}`}
                         >
-                          {isActive ? '✓ Activo' : '✗ Inactivo'}
-                        </button>
+                          <option value="activo">Activo</option>
+                          <option value="inactivo">Inactivo</option>
+                        </select>
                       </div>
                       
                       <h3 className="font-bold text-gray-900 mb-2">{curso.titulo || 'Sin título'}</h3>
@@ -528,7 +548,7 @@ export default function GestionCursos() {
                                   e.stopPropagation();
                                   handleEditCurso(curso);
                                 }}
-                                disabled={asignandoDocente === curso.id_curso || !isActive}
+                                disabled={asignandoDocente === curso.id_curso || isInactive}
                                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 mt-3"
                               >
                                 Editar Curso
@@ -543,7 +563,7 @@ export default function GestionCursos() {
                             e.stopPropagation();
                             handleDesasignarDocente(curso.id_curso);
                           }}
-                          disabled={asignandoDocente === curso.id_curso || !isActive}
+                          disabled={asignandoDocente === curso.id_curso || isInactive}
                           className="w-full px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:bg-gray-400 mt-3"
                           title="Quitar docente"
                         >
@@ -559,36 +579,7 @@ export default function GestionCursos() {
         </div>
       </div>
 
-      {/* Modal para activar/desactivar curso */}
-      {showActiveModal && selectedCurso && selectedActiveState !== null && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border-2 border-blue-900">
-            <h3 className="text-xl font-bold mb-4">¿Estás seguro?</h3>
-            <p className="mb-4">
-              ¿Deseas {selectedActiveState ? 'activar' : 'desactivar'} el curso{' '}
-              <span className="font-semibold">{selectedCurso.codigo} - {selectedCurso.titulo || 'Sin título'}</span>?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={handleToggleActive}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                Confirmar
-              </button>
-              <button
-                onClick={() => {
-                  setShowActiveModal(false);
-                  setSelectedCurso(null);
-                  setSelectedActiveState(null);
-                }}
-                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Modal para editar curso */}
       {editingCurso && (

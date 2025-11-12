@@ -7,6 +7,8 @@ import AuthCallback from './components/AuthCallback';
 import Home from './components/Home';
 import Dashboard from './components/Dashboard';
 import GestionCursos from './components/GestionCursos';
+import DocenteCursoView from './components/DocenteCursoView';
+import MaterialesCurso from './components/MaterialesCurso';
 
 function App() {
   const [showWelcome, setShowWelcome] = useState(true);
@@ -52,6 +54,18 @@ function App() {
       <Route 
         path="/gestion-cursos" 
         element={<GestionCursos />} 
+      />
+
+      {/* Vista de curso para docente */}
+      <Route 
+        path="/curso/:id" 
+        element={<DocenteCursoView />} 
+      />
+
+      {/* Vista de materiales del curso */}
+      <Route 
+        path="/curso/:cursoId/materiales" 
+        element={<MaterialesCurso />} 
       />
 
       {/* Ruta principal - Home */}

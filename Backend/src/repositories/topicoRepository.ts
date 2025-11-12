@@ -20,6 +20,22 @@ export class topicoRepository {
     return res.rows;
   }
 
+  async findByCodigoCurso(codigo: string): Promise<topico | null> {
+    const query = `
+      SELECT t.* 
+      FROM topico t
+      INNER JOIN cursos c ON t.id_curso = c.id_curso
+      WHERE c.codigo = $1 AND t.activo = true
+      ORDER BY t.orden
+      LIMIT 1
+    `;
+    const res = await pool.query(query, [codigo]);
+    if (res.rowCount === 0) {
+      return null;
+    }
+    return res.rows[0];
+  }
+
   async create(data: Omit<topico, 'id_topico' | 'creado_at'>): Promise<topico> {
     const query = `INSERT INTO topico (id_curso, orden, titulo, descripcion, material_id, activo)
       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;

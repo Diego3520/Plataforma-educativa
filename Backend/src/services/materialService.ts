@@ -31,23 +31,27 @@ export class materialService {
     mime_type?: string | null;
     content_type: 'pdf' | 'video' | 'imagen' | 'otro';
     activo?: boolean;
+    id_curso: number;
   }): Promise<material> {
     if (!payload.content_type) {
       throw new Error('El content_type es obligatorio');
     }
-    
+    if (!payload.id_curso) {
+      throw new Error('El id_curso es obligatorio');
+    }
     const tiposPermitidos = ['pdf', 'video', 'imagen', 'otro'];
     if (tiposPermitidos.indexOf(payload.content_type) === -1) {
       throw new Error('Tipo de contenido invalido');
     }
-    
+
     const finalPayload = {
       solucion_modelo: payload.solucion_modelo || null,
       ruta_archivo: payload.ruta_archivo || null,
       tamano_bytes: payload.tamano_bytes || null,
       mime_type: payload.mime_type || null,
       content_type: payload.content_type,
-      activo: payload.activo === undefined ? true : payload.activo
+      activo: payload.activo === undefined ? true : payload.activo,
+      id_curso: payload.id_curso
     };
     return await this.repo.create(finalPayload as any);
   }
@@ -79,5 +83,9 @@ export class materialService {
     if (!eliminado) {
       throw new Error('Material no encontrado para eliminar');
     }
+  }
+
+  async obtenerMaterialesPorCurso(id_curso: number): Promise<material[]> {
+    return await this.repo.findByCurso(id_curso);
   }
 }

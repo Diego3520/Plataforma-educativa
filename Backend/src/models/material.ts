@@ -7,4 +7,5 @@ export interface material {
   content_type: 'pdf' | 'video' | 'imagen' | 'otro';
   creado_at: string;
   activo: boolean;
+  id_curso: number;
 }

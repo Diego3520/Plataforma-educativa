@@ -24,6 +24,14 @@ export class topicoService {
     return await this.repo.findByCursoId(cursoId);
   }
 
+  async obtenerTopicoPorCodigoCurso(codigo: string): Promise<topico> {
+    const topico = await this.repo.findByCodigoCurso(codigo);
+    if (!topico) {
+      throw new Error('Topico no encontrado para el código de curso proporcionado');
+    }
+    return topico;
+  }
+
   async crearTopico(payload: {
     id_curso: number;
     orden: number;

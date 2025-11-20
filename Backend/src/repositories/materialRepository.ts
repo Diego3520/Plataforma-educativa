@@ -7,8 +7,8 @@ export class materialRepository {
     return res.rows;
   }
 
-  async findByCurso(id_curso: number): Promise<material[]> {
-    const res = await pool.query('SELECT * FROM material WHERE id_curso = $1 ORDER BY material_id', [id_curso]);
+  async findByCurso(cursoId: number): Promise<material[]> {
+    const res = await pool.query('SELECT * FROM material WHERE id_curso = $1 ORDER BY material_id', [cursoId]);
     return res.rows;
   }
 

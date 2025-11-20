@@ -42,11 +42,11 @@ export class materialController {
 
   static async verPorCurso(req: Request, res: Response) {
     try {
-      const id_curso = parseInt(req.params.id_curso);
-      if (isNaN(id_curso)) {
+      const cursoId = parseInt(req.params.id_curso);
+      if (isNaN(cursoId)) {
         return res.status(400).json({ error: 'ID de curso invalido' });
       }
-      const materiales = await service.obtenerMaterialesPorCurso(id_curso);
+      const materiales = await service.obtenerMaterialesPorCurso(cursoId);
       return res.json(materiales);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });

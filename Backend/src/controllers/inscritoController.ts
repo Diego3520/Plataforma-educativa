@@ -50,11 +50,11 @@ export class inscritoController {
       if (!errores.isEmpty()) {
         return res.status(400).json({ errores: errores.array() });
       }
-      const { codigo_curso, id_usuario } = req.body;
-      if (!codigo_curso || !id_usuario) {
+      const { codigo_curso: codigoCurso, id_usuario: usuarioId } = req.body;
+      if (!codigoCurso || !usuarioId) {
         return res.status(400).json({ error: 'codigo_curso e id_usuario son requeridos' });
       }
-      const inscripcion = await service.inscribirsePorCodigo(codigo_curso, id_usuario);
+      const inscripcion = await service.inscribirsePorCodigo(codigoCurso, usuarioId);
       return res.status(201).json(inscripcion);
     } catch (error: any) {
       if (error.message.includes('Ya estás inscrito') || error.message.includes('no encontrado')) {

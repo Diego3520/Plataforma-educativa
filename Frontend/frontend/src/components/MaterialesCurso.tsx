@@ -43,11 +43,6 @@ type ComentarioEditor = {
   actualizado_at: string | null;
 };
 
-type ElementoMaterialOComentario = (
-  | ({tipo: 'comentario'; fecha: Date} & ComentarioEditor)
-  | ({tipo: 'material'; fecha: Date} & Material)
-);
-
 const baseApi = 'http://localhost:5000/api';
 const socketUrl = 'http://localhost:5000';
 
@@ -253,11 +248,13 @@ export default function MaterialesCurso() {
 
   if (!usuario) return null;
 
-  const elementos: ElementoMaterialOComentario[] = useMemo(() => {
-    const comentariosElem: ElementoMaterialOComentario[] = comentarios.map(c => ({ ...c, tipo: 'comentario', fecha: new Date(c.creado_at) }));
-    const materialesElem: ElementoMaterialOComentario[] = materiales.map(m => ({ ...m, tipo: 'material', fecha: new Date(m.creado_at) }));
-    return [...comentariosElem, ...materialesElem].sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
-  }, [comentarios, materiales]);
+  const comentariosOrdenados = useMemo(() => (
+    [...comentarios].sort((a, b) => new Date(b.creado_at).getTime() - new Date(a.creado_at).getTime())
+  ), [comentarios]);
+
+  const materialesOrdenados = useMemo(() => (
+    [...materiales].sort((a, b) => new Date(b.creado_at).getTime() - new Date(a.creado_at).getTime())
+  ), [materiales]);
 
   return (
     <div className="min-h-screen" style={{ fontFamily: 'Poppins, sans-serif' }}>
@@ -303,81 +300,110 @@ export default function MaterialesCurso() {
           
           {loading ? (
             <div className="text-gray-600 text-sm mb-5">Cargando materiales...</div>
-          ) : elementos.length === 0 ? (
+          ) : comentariosOrdenados.length === 0 && materialesOrdenados.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-              <p className="text-gray-600">No hay material ni comentarios disponibles para este curso.</p>
+              <p className="text-gray-600">No hay material ni comunicados disponibles para este curso.</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Material y Actualizaciones del Editor</h2>
-              
-              {elementos.map(elem => {
-                if (elem.tipo === 'comentario') {
-                  return (
-                    <div key={`c${elem.id_comentario}`} className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold uppercase bg-blue-100 text-blue-700">
-                            {elem.tipo}
-                          </span>
-                          {topicos && topicos.length > 0 && (
-                            <span className="text-xs text-gray-600">
-                              {topicos.find(t => t.id_topico === elem.id_topico)?.titulo || ''}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {elem.fecha.toLocaleString('es-ES')}
-                        </span>
-                      </div>
-                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: elem.contenido }} />
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Comunicados y material en la misma vista</h2>
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                <section className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col gap-4">
+                  <header className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">Comunicados del editor</h3>
+                      <p className="text-sm text-gray-500">Actualizaciones por tópico, anuncios y mensajes.</p>
                     </div>
-                  );
-                } else {
-                  // Material
-                  return (
-                    <div key={`m${elem.material_id}`} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-4">
-                        <span className={`px-3 py-1 rounded text-xs font-semibold uppercase ${
-                          elem.content_type === 'pdf' ? 'bg-red-100 text-red-700' :
-                          elem.content_type === 'video' ? 'bg-purple-100 text-purple-700' :
-                          elem.content_type === 'imagen' ? 'bg-green-100 text-green-700' :
-                          'bg-blue-100 text-blue-700'
-                        }`}>
-                          {elem.content_type}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {elem.fecha.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
-                        </span>
-                      </div>
-                      {elem.mime_type && (
-                        <div className="text-gray-700 font-medium mb-3">{elem.mime_type}</div>
-                      )}
-                      {elem.ruta_archivo && isDriveLink(elem.ruta_archivo) && (
-                        <div className="mb-4">
-                          {elem.content_type === 'video' ? (
-                            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                              <iframe
-                                src={convertDriveUrl(elem.ruta_archivo, elem.content_type) || elem.ruta_archivo}
-                                allow="autoplay; encrypted-media"
-                                allowFullScreen
-                                title="Drive" style={{ position: 'absolute', top:0, left:0, width:'100%', height:'100%' }} />
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-blue-50 text-blue-700 border border-blue-100">
+                      {comentariosOrdenados.length}
+                    </span>
+                  </header>
+                  {comentariosOrdenados.length === 0 ? (
+                    <p className="text-gray-500 text-sm">Aún no hay comunicados nuevos.</p>
+                  ) : (
+                    <div className="space-y-4 overflow-hidden">
+                      {comentariosOrdenados.map(elem => (
+                        <article key={`comentario-${elem.id_comentario}`} className="border border-blue-100 rounded-lg p-4 bg-blue-50 shadow-sm">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold uppercase bg-blue-100 text-blue-700">
+                                {elem.tipo}
+                              </span>
+                              {topicos.length > 0 && (
+                                <span className="text-xs text-gray-600">
+                                  {topicos.find(t => t.id_topico === elem.id_topico)?.titulo || ''}
+                                </span>
+                              )}
                             </div>
-                          ) : elem.content_type === 'pdf' ? (
-                            <iframe
-                              src={convertDriveUrl(elem.ruta_archivo, elem.content_type) || elem.ruta_archivo}
-                              style={{ width: '100%', height: 500 }}
-                              title="PDF preview" />
-                          ) : (
-                            <img src={elem.ruta_archivo} alt="Material" className="rounded-lg" />
-                          )}
-                        </div>
-                      )}
-                      {/* Otros detalles del material pueden ir aquí */}
+                            <span className="text-xs text-gray-500">
+                              {new Date(elem.creado_at).toLocaleString('es-ES')}
+                            </span>
+                          </div>
+                          <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: elem.contenido }} />
+                        </article>
+                      ))}
                     </div>
-                  );
-                }
-              })}
+                  )}
+                </section>
+                <section className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col gap-4">
+                  <header className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">Material del docente</h3>
+                      <p className="text-sm text-gray-500">Recursos subidos por el docente para el curso.</p>
+                    </div>
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-purple-50 text-purple-700 border border-purple-100">
+                      {materialesOrdenados.length}
+                    </span>
+                  </header>
+                  {materialesOrdenados.length === 0 ? (
+                    <p className="text-gray-500 text-sm">Todavía no se ha subido material.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {materialesOrdenados.map(elem => (
+                        <article key={`material-${elem.material_id}`} className="border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
+                          <div className="flex justify-between items-start mb-3">
+                            <span className={`px-3 py-1 rounded text-xs font-semibold uppercase ${
+                              elem.content_type === 'pdf' ? 'bg-red-100 text-red-700' :
+                              elem.content_type === 'video' ? 'bg-purple-100 text-purple-700' :
+                              elem.content_type === 'imagen' ? 'bg-green-100 text-green-700' :
+                              'bg-blue-100 text-blue-700'
+                            }`}>
+                              {elem.content_type}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(elem.creado_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </span>
+                          </div>
+                          {elem.mime_type && (
+                            <div className="text-gray-700 font-medium mb-3">{elem.mime_type}</div>
+                          )}
+                          {elem.ruta_archivo && isDriveLink(elem.ruta_archivo) && (
+                            <div className="mb-4">
+                              {elem.content_type === 'video' ? (
+                                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                                  <iframe
+                                    src={convertDriveUrl(elem.ruta_archivo, elem.content_type) || elem.ruta_archivo}
+                                    allow="autoplay; encrypted-media"
+                                    allowFullScreen
+                                    title="Drive" style={{ position: 'absolute', top:0, left:0, width:'100%', height:'100%' }} />
+                                </div>
+                              ) : elem.content_type === 'pdf' ? (
+                                <iframe
+                                  src={convertDriveUrl(elem.ruta_archivo, elem.content_type) || elem.ruta_archivo}
+                                  style={{ width: '100%', height: 320 }}
+                                  title="PDF preview" />
+                              ) : (
+                                <img src={elem.ruta_archivo} alt="Material" className="rounded-lg" />
+                              )}
+                            </div>
+                          )}
+                          {/* Otros detalles del material pueden ir aquí */}
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </div>
             </div>
           )}
         </div>

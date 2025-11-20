@@ -85,7 +85,7 @@ export class materialService {
     }
   }
 
-  async obtenerMaterialesPorCurso(id_curso: number): Promise<material[]> {
-    return await this.repo.findByCurso(id_curso);
+  async obtenerMaterialesPorCurso(cursoId: number): Promise<material[]> {
+    return await this.repo.findByCurso(cursoId);
   }
 }

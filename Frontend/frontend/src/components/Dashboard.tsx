@@ -33,6 +33,7 @@ type Material = {
   id_curso: number;
 };
 
+
 const baseApi = 'http://localhost:5000/api';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -149,6 +150,8 @@ export default function Dashboard() {
   const [tareaIdTopico, setTareaIdTopico] = useState('');
   const [topicosCurso, setTopicosCurso] = useState<any[]>([]);
   const [materialesCurso, setMaterialesCurso] = useState<Material[]>([]);
+  const [materialFile, setMaterialFile] = useState<File | null>(null);
+  const [fileUploadError, setFileUploadError] = useState<string | null>(null);
 
   const fullName = useMemo(() => {
     if (!usuario) return '';
@@ -222,22 +225,61 @@ export default function Dashboard() {
       return;
     }
 
-    if (!rutaArchivo.trim()) {
+    if (!materialFile && !rutaArchivo.trim()) {
+      setError('La ruta del archivo es obligatoria o debes seleccionar un archivo para cargar.');
+      return;
+    }
+
+    setSubmittingMaterial(true);
+    setError(null);
+    setFileUploadError(null);
+
+    let rutaFinal = rutaArchivo.trim();
+    let tamanoBytes: number | null = null;
+    let uploadMimeType: string | null = null;
+
+    if (materialFile) {
+      try {
+        const formData = new FormData();
+        formData.append('file', materialFile);
+        const token = authService.getToken();
+        const res = await fetch(`${baseApi}/uploads`, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          body: formData
+        });
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({}));
+          throw new Error(payload.error || 'No se pudo subir el archivo');
+        }
+        const uploaded = await res.json();
+        const cloudUrl = uploaded.secure_url || uploaded.url;
+        rutaFinal = cloudUrl || uploaded.local_path || rutaFinal;
+        tamanoBytes = uploaded.bytes ?? uploaded.size ?? null;
+        uploadMimeType = uploaded.mime_type ?? (uploaded.resource_type && uploaded.format ? `${uploaded.resource_type}/${uploaded.format}` : null);
+        setRutaArchivo(rutaFinal);
+      } catch (e: any) {
+        setFileUploadError(e.message || 'Error al subir el archivo');
+        setSubmittingMaterial(false);
+        return;
+      }
+    }
+
+    if (!rutaFinal) {
       setError('La ruta del archivo es obligatoria.');
+      setSubmittingMaterial(false);
       return;
     }
 
     try {
-      setSubmittingMaterial(true);
-      setError(null);
-
       // Crear el material
+      const descripcion = descripcionMaterial.trim();
       const payload = {
         id_curso: selectedCursoIdForMaterial,
         solucion_modelo: solucionModelo.trim() || null,
-        ruta_archivo: rutaArchivo.trim(),
-        tamano_bytes: null,
-        mime_type: descripcionMaterial.trim() || null,
+        ruta_archivo: rutaFinal,
+        tamano_bytes: tamanoBytes,
+        mime_type: descripcion || uploadMimeType || null,
         content_type: contentType,
         activo: true
       };
@@ -371,6 +413,8 @@ export default function Dashboard() {
     setSelectedCursoIdForMaterial(null);
     setSolucionModelo('');
     setRutaArchivo('');
+    setMaterialFile(null);
+    setFileUploadError(null);
     setDescripcionMaterial('');
     setContentType('pdf');
     setCrearTarea(false);
@@ -447,6 +491,8 @@ export default function Dashboard() {
     authService.logout();
     navigate('/login');
   };
+
+
 
   return (
     <div className="min-h-screen" style={{ fontFamily: 'Poppins, sans-serif' }}>
@@ -548,7 +594,6 @@ export default function Dashboard() {
                   ))}
                 </div>
               )}
-
             </div>
           )}
 
@@ -587,6 +632,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               )}
+
             </div>
           )}
 
@@ -668,6 +714,7 @@ export default function Dashboard() {
               )}
             </div>
           )}
+
         </div>
       </div>
 
@@ -695,8 +742,33 @@ export default function Dashboard() {
               </div>
 
               <div>
+                <label htmlFor="material_file" className="block text-sm font-semibold mb-1 text-gray-700">
+                  Archivo del Material (opcional)
+                </label>
+                <input
+                  id="material_file"
+                  type="file"
+                  accept="application/pdf,video/*,audio/*,image/*,.zip"
+                  onChange={(event) => {
+                    setMaterialFile(event.target.files?.[0] || null);
+                    setFileUploadError(null);
+                  }}
+                  className="w-full text-sm text-gray-700"
+                />
+                {materialFile && (
+                  <p className="text-xs text-gray-500 mt-1">Archivo seleccionado: {materialFile.name}</p>
+                )}
+                {fileUploadError && (
+                  <p className="text-xs text-red-600 mt-1">{fileUploadError}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Puedes seleccionar un archivo para subirlo y se completará la ruta automáticamente.
+                </p>
+              </div>
+
+              <div>
                 <label htmlFor="ruta_archivo" className="block text-sm font-semibold mb-1 text-gray-700">
-                  Ruta del Archivo <span className="text-red-500">*</span>
+                  Ruta del Archivo
                 </label>
                 <input
                   id="ruta_archivo"
@@ -705,8 +777,10 @@ export default function Dashboard() {
                   onChange={(e) => setRutaArchivo(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ej: /documentos/clase1.pdf"
-                  required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Este campo es opcional si subes un archivo, pero debe completarse si no lo haces.
+                </p>
               </div>
 
               <div>
@@ -831,7 +905,7 @@ export default function Dashboard() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={handleSubirMaterial}
-                disabled={submittingMaterial || !rutaArchivo.trim()}
+                disabled={submittingMaterial || (!rutaArchivo.trim() && !materialFile)}
                 className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 {submittingMaterial ? 'Subiendo...' : crearTarea ? 'Subir Material y Crear Tarea' : 'Subir Material'}

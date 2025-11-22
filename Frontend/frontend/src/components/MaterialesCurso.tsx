@@ -459,7 +459,20 @@ export default function MaterialesCurso() {
                               </a>
                             </div>
                           )}
-                          {/* Otros detalles del material pueden ir aquí */}
+                          {/* Solución modelo si existe */}
+                          {elem.solucion_modelo && (
+                            <div className="mt-3">
+                              <a
+                                href={resolveMaterialUrl(elem.solucion_modelo) || elem.solucion_modelo}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-2 text-purple-700 text-sm font-semibold border border-purple-200 rounded px-3 py-2 bg-purple-50 hover:bg-purple-100 transition-colors"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17l4 4 4-4m-4-5v9" /></svg>
+                                Ver solución modelo
+                              </a>
+                            </div>
+                          )}
                         </article>
                       ))}
                     </div>

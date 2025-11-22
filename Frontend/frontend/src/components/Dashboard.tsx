@@ -57,7 +57,7 @@ type Topico = {
 function TopicosList({ cursoId }: { cursoId: number }) {
   const navigate = useNavigate();
   const [topicos, setTopicos] = useState<Topico[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingTopicos, setLoadingTopicos] = useState(true);
 
   useEffect(() => {
     const loadTopicos = async () => {
@@ -68,13 +68,13 @@ function TopicosList({ cursoId }: { cursoId: number }) {
         console.error('Error cargando tópicos:', e);
         setTopicos([]);
       } finally {
-        setLoading(false);
+        setLoadingTopicos(false);
       }
     };
     loadTopicos();
   }, [cursoId]);
 
-  if (loading) {
+  if (loadingTopicos) {
     return <div className="text-sm text-gray-500">Cargando tópicos...</div>;
   }
 
@@ -110,8 +110,8 @@ export default function Dashboard() {
     if (!usuarioRaw) return null;
     return {
       ...usuarioRaw,
-      id_usuario: typeof usuarioRaw.id_usuario === 'string' 
-        ? parseInt(usuarioRaw.id_usuario) 
+      id_usuario: typeof usuarioRaw.id_usuario === 'string'
+        ? parseInt(usuarioRaw.id_usuario)
         : usuarioRaw.id_usuario
     } as Usuario;
   }, []);
@@ -127,19 +127,19 @@ export default function Dashboard() {
   const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
   const [selectedNewRole, setSelectedNewRole] = useState<Usuario['tipo'] | null>(null);
   const [selectedActiveState, setSelectedActiveState] = useState<boolean | null>(null);
-  
-  // Estados para el modal de inscripción
+
   const [showInscripcionModal, setShowInscripcionModal] = useState(false);
   const [codigoCurso, setCodigoCurso] = useState('');
   const [submittingInscripcion, setSubmittingInscripcion] = useState(false);
-  
-  // Estados para el modal de material
+
   const [showMaterialModal, setShowMaterialModal] = useState(false);
   const [submittingMaterial, setSubmittingMaterial] = useState(false);
   const [selectedCursoIdForMaterial, setSelectedCursoIdForMaterial] = useState<number | null>(null);
   const [solucionModelo, setSolucionModelo] = useState('');
   const [rutaArchivo, setRutaArchivo] = useState('');
   const [descripcionMaterial, setDescripcionMaterial] = useState('');
+  const [solucionModelFile, setSolucionModelFile] = useState<File | null>(null);
+  const [solucionUploadError, setSolucionUploadError] = useState<string | null>(null);
   const [contentType, setContentType] = useState<'pdf' | 'video' | 'imagen' | 'otro'>('pdf');
   const [crearTarea, setCrearTarea] = useState(false);
   const [tareaFechaPublicacion, setTareaFechaPublicacion] = useState(new Date().toISOString().split('T')[0]);
@@ -219,118 +219,6 @@ export default function Dashboard() {
     load();
   }, [usuario]);
 
-  const handleSubirMaterial = async () => {
-    if (!selectedCursoIdForMaterial) {
-      setError('No se ha seleccionado un curso.');
-      return;
-    }
-
-    if (!materialFile && !rutaArchivo.trim()) {
-      setError('La ruta del archivo es obligatoria o debes seleccionar un archivo para cargar.');
-      return;
-    }
-
-    setSubmittingMaterial(true);
-    setError(null);
-    setFileUploadError(null);
-
-    let rutaFinal = rutaArchivo.trim();
-    let tamanoBytes: number | null = null;
-    let uploadMimeType: string | null = null;
-
-    if (materialFile) {
-      try {
-        const formData = new FormData();
-        formData.append('file', materialFile);
-        const token = authService.getToken();
-        const res = await fetch(`${baseApi}/uploads`, {
-          method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          body: formData
-        });
-        if (!res.ok) {
-          const payload = await res.json().catch(() => ({}));
-          throw new Error(payload.error || 'No se pudo subir el archivo');
-        }
-        const uploaded = await res.json();
-        const cloudUrl = uploaded.secure_url || uploaded.url;
-        rutaFinal = cloudUrl || uploaded.local_path || rutaFinal;
-        tamanoBytes = uploaded.bytes ?? uploaded.size ?? null;
-        uploadMimeType = uploaded.mime_type ?? (uploaded.resource_type && uploaded.format ? `${uploaded.resource_type}/${uploaded.format}` : null);
-        setRutaArchivo(rutaFinal);
-      } catch (e: any) {
-        setFileUploadError(e.message || 'Error al subir el archivo');
-        setSubmittingMaterial(false);
-        return;
-      }
-    }
-
-    if (!rutaFinal) {
-      setError('La ruta del archivo es obligatoria.');
-      setSubmittingMaterial(false);
-      return;
-    }
-
-    try {
-      // Crear el material
-      const descripcion = descripcionMaterial.trim();
-      const payload = {
-        id_curso: selectedCursoIdForMaterial,
-        solucion_modelo: solucionModelo.trim() || null,
-        ruta_archivo: rutaFinal,
-        tamano_bytes: tamanoBytes,
-        mime_type: descripcion || uploadMimeType || null,
-        content_type: contentType,
-        activo: true
-      };
-
-      const nuevoMaterial = await fetchJSON<Material>(`${baseApi}/materiales`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authService.getToken()}`
-        },
-        body: JSON.stringify(payload),
-      });
-
-      // Si se marcó crear tarea, crear la tarea también
-      if (crearTarea) {
-        const topicoId = tareaIdTopico 
-          ? parseInt(tareaIdTopico)
-          : (topicosCurso.length > 0 ? topicosCurso[0].id_topico : null);
-
-        if (!topicoId) {
-          setError('No hay tópicos disponibles para crear la tarea');
-          setSubmittingMaterial(false);
-          return;
-        }
-
-        await fetchJSON(`${baseApi}/tareas`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authService.getToken()}`
-          },
-          body: JSON.stringify({
-            id_topico: topicoId,
-            fecha_publicacion: tareaFechaPublicacion,
-            fecha_limite: tareaFechaLimite || null,
-            material_id: tareaMaterialId ? parseInt(tareaMaterialId) : nuevoMaterial.material_id,
-            nota_max: tareaNotaMax ? parseFloat(tareaNotaMax) : null,
-            solucion_aportada: tareaSolucionAportada || null
-          }),
-        });
-      }
-
-      closeMaterialModal();
-      setSuccess(crearTarea ? 'Material y tarea creados exitosamente' : 'Material subido exitosamente');
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (e: any) {
-      setError(e.message || 'Error al subir el material');
-    } finally {
-      setSubmittingMaterial(false);
-    }
-  };
 
   const openMaterialModal = async (cursoId: number) => {
     setSelectedCursoIdForMaterial(cursoId);
@@ -384,7 +272,6 @@ export default function Dashboard() {
       setSuccess('¡Te has inscrito exitosamente al curso!');
       setShowInscripcionModal(false);
       setCodigoCurso('');
-      
       // Recargar los cursos del usuario
       const data = await fetchJSON<any[]>(`${baseApi}/inscritos/usuario/${usuario.id_usuario}`);
       const maybeCursos: any[] = Array.isArray(data) ? (data as any[]) : [];
@@ -398,13 +285,123 @@ export default function Dashboard() {
         fecha_creacion: it.fecha_creacion
       })) as Curso[];
       setCursos(mapped);
-      
+    } catch (e: any) {
+      setError(e.message || 'Error al inscribirse al curso');
+    } finally {
+      setSubmittingInscripcion(false);
+    }
+  };
+
+  const handleSubirMaterial = async () => {
+    if (!selectedCursoIdForMaterial) {
+      setError('No se ha seleccionado un curso.');
+      return;
+    }
+
+    if (!materialFile && !rutaArchivo.trim()) {
+      setError('La ruta del archivo es obligatoria o debes seleccionar un archivo para cargar.');
+      return;
+    }
+
+    setSubmittingMaterial(true);
+    setError(null);
+    setFileUploadError(null);
+    setSolucionUploadError(null);
+
+    let rutaFinal = rutaArchivo.trim();
+    let tamanoBytes: number | null = null;
+    let uploadMimeType: string | null = null;
+
+    if (materialFile) {
+      try {
+        const uploaded = await uploadFileToServer(materialFile);
+        const cloudUrl = uploaded.secure_url || uploaded.url;
+        rutaFinal = cloudUrl || uploaded.local_path || rutaFinal;
+        tamanoBytes = uploaded.bytes ?? uploaded.size ?? null;
+        uploadMimeType = uploaded.mime_type ?? (uploaded.resource_type && uploaded.format ? `${uploaded.resource_type}/${uploaded.format}` : null);
+        setRutaArchivo(rutaFinal);
+      } catch (e: any) {
+        setFileUploadError(e.message || 'Error al subir el archivo');
+        setSubmittingMaterial(false);
+        return;
+      }
+    }
+
+    let solucionUrl: string | null = solucionModelo.trim() || null;
+    if (solucionModelFile) {
+      try {
+        const uploadedSolution = await uploadFileToServer(solucionModelFile);
+        solucionUrl = uploadedSolution.secure_url || uploadedSolution.url || uploadedSolution.local_path || solucionUrl;
+        setSolucionModelo(solucionUrl || '');
+      } catch (e: any) {
+        setSolucionUploadError(e.message || 'Error al subir la solución modelo');
+        setSubmittingMaterial(false);
+        return;
+      }
+    }
+
+    if (!rutaFinal) {
+      setError('La ruta del archivo es obligatoria.');
+      setSubmittingMaterial(false);
+      return;
+    }
+
+    try {
+      const payload = {
+        id_curso: selectedCursoIdForMaterial,
+        solucion_modelo: solucionUrl || null,
+        ruta_archivo: rutaFinal,
+        tamano_bytes: tamanoBytes,
+        mime_type: descripcionMaterial.trim() || uploadMimeType || null,
+        content_type: contentType,
+        activo: true
+      };
+
+      const nuevoMaterial = await fetchJSON<Material>(`${baseApi}/materiales`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (crearTarea) {
+        const topicoId = tareaIdTopico 
+          ? parseInt(tareaIdTopico)
+          : (topicosCurso.length > 0 ? topicosCurso[0].id_topico : null);
+
+        if (!topicoId) {
+          setError('No hay tópicos disponibles para crear la tarea');
+          setSubmittingMaterial(false);
+          return;
+        }
+
+        await fetchJSON(`${baseApi}/tareas`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authService.getToken()}`
+          },
+          body: JSON.stringify({
+            id_topico: topicoId,
+            fecha_publicacion: tareaFechaPublicacion,
+            fecha_limite: tareaFechaLimite || null,
+            material_id: tareaMaterialId ? parseInt(tareaMaterialId) : nuevoMaterial.material_id,
+            nota_max: tareaNotaMax ? parseFloat(tareaNotaMax) : null,
+            solucion_aportada: tareaSolucionAportada || null
+          }),
+        });
+      }
+
+      closeMaterialModal();
+      setSuccess(crearTarea ? 'Material y tarea creados exitosamente' : 'Material subido exitosamente');
       setTimeout(() => setSuccess(null), 3000);
     } catch (e: any) {
       console.error('Error inscribiéndose:', e);
       setError(e.message || 'Error al inscribirse al curso');
     } finally {
-      setSubmittingInscripcion(false);
+      setSubmittingMaterial(false);
     }
   };
 
@@ -426,6 +423,22 @@ export default function Dashboard() {
     setTareaIdTopico('');
     setTopicosCurso([]);
     setMaterialesCurso([]);
+  };
+
+  const uploadFileToServer = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = authService.getToken();
+    const res = await fetch(`${baseApi}/uploads`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: formData
+    });
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({}));
+      throw new Error(payload.error || 'No se pudo subir el archivo');
+    }
+    return res.json();
   };
 
   const handleChangeRole = async () => {
@@ -742,7 +755,7 @@ export default function Dashboard() {
               </div>
 
               <div>
-                <label htmlFor="material_file" className="block text-sm font-semibold mb-1 text-gray-700">
+                <label htmlFor="material_file" className="block text-base font-bold mb-2 text-blue-700">
                   Archivo del Material (opcional)
                 </label>
                 <input
@@ -752,23 +765,34 @@ export default function Dashboard() {
                   onChange={(event) => {
                     setMaterialFile(event.target.files?.[0] || null);
                     setFileUploadError(null);
+                    // Auto-detect content type
+                    const file = event.target.files?.[0];
+                    if (file) {
+                      const extRaw = file.name.split('.').pop();
+                      const ext = extRaw ? extRaw.toLowerCase() : '';
+                      if (ext === 'pdf') setContentType('pdf');
+                      else if (["mp4","avi","mov","mkv","webm"].includes(ext)) setContentType('video');
+                      else if (["jpg","jpeg","png","gif","bmp","svg","webp"].includes(ext)) setContentType('imagen');
+                      else setContentType('otro');
+                    }
                   }}
-                  className="w-full text-sm text-gray-700"
+                  className="w-full text-lg text-gray-700 py-3 px-4 border-2 border-blue-500 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-blue-50 hover:bg-blue-100 cursor-pointer"
+                  style={{ minHeight: '56px' }}
                 />
                 {materialFile && (
-                  <p className="text-xs text-gray-500 mt-1">Archivo seleccionado: {materialFile.name}</p>
+                  <p className="text-xs text-gray-700 mt-2 font-semibold">Archivo seleccionado: {materialFile.name}</p>
                 )}
                 {fileUploadError && (
-                  <p className="text-xs text-red-600 mt-1">{fileUploadError}</p>
+                  <p className="text-xs text-red-600 mt-2">{fileUploadError}</p>
                 )}
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-blue-700 mt-2 font-semibold">
                   Puedes seleccionar un archivo para subirlo y se completará la ruta automáticamente.
                 </p>
               </div>
 
               <div>
                 <label htmlFor="ruta_archivo" className="block text-sm font-semibold mb-1 text-gray-700">
-                  Ruta del Archivo
+                  Ruta del Archivo <span className="text-xs text-gray-400">(opcional)</span>
                 </label>
                 <input
                   id="ruta_archivo"
@@ -785,7 +809,7 @@ export default function Dashboard() {
 
               <div>
                 <label htmlFor="descripcion_material" className="block text-sm font-semibold mb-1 text-gray-700">
-                  Descripción del Material
+                  Descripción del Material <span className="text-xs text-gray-400">(opcional)</span>
                 </label>
                 <textarea
                   id="descripcion_material"
@@ -799,7 +823,7 @@ export default function Dashboard() {
 
               <div>
                 <label htmlFor="solucion_modelo" className="block text-sm font-semibold mb-1 text-gray-700">
-                  Solución Modelo (Opcional)
+                  Solución Modelo <span className="text-xs text-gray-400">(opcional)</span>
                 </label>
                 <input
                   id="solucion_modelo"
@@ -809,6 +833,28 @@ export default function Dashboard() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ej: /soluciones/ejercicio1.pdf"
                 />
+                <div className="mt-2">
+                  <label htmlFor="solucion_modelo_file" className="block text-xs font-semibold text-gray-600 mb-1">
+                    También puedes cargar un archivo de solución (su URL sustituirá la ruta anterior)
+                  </label>
+                  <input
+                    id="solucion_modelo_file"
+                    type="file"
+                    accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={(event) => {
+                      setSolucionModelFile(event.target.files?.[0] || null);
+                      setSolucionUploadError(null);
+                    }}
+                    className="w-full text-lg text-gray-700 py-3 px-4 border-2 border-blue-500 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-blue-50 hover:bg-blue-100 cursor-pointer"
+                    style={{ minHeight: '56px' }}
+                  />
+                  {solucionModelFile && (
+                    <p className="text-xs text-gray-700 mt-2 font-semibold">Archivo de solución listo: {solucionModelFile.name}</p>
+                  )}
+                  {solucionUploadError && (
+                    <p className="text-xs text-red-600 mt-2">{solucionUploadError}</p>
+                  )}
+                </div>
               </div>
 
               {/* Sección de Tarea */}

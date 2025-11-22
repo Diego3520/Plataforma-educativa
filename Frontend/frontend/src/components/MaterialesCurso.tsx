@@ -44,6 +44,7 @@ type ComentarioEditor = {
 };
 
 const baseApi = 'http://localhost:5000/api';
+const baseServerUrl = baseApi.replace(/\/api\/?$/, '');
 const socketUrl = 'http://localhost:5000';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -97,6 +98,54 @@ function convertDriveUrl(url: string, contentType: string = 'video'): string | n
 function isDriveLink(url: string): boolean {
   if (!url) return false;
   return url.includes('drive.google.com') || url.includes('docs.google.com');
+}
+
+function resolveMaterialUrl(ruta?: string | null) {
+  if (!ruta) return null;
+  const trimmed = ruta.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const cleanPath = trimmed.replace(/^\/+/, '');
+  return `${baseServerUrl}/${cleanPath}`;
+}
+
+function renderMaterialPreview(material: Material) {
+  const url = resolveMaterialUrl(material.ruta_archivo);
+  if (!url) return null;
+
+  const mime = material.mime_type ?? '';
+  if (mime.includes('pdf') || url.toLowerCase().endsWith('.pdf')) {
+    return (
+      <iframe
+        src={url}
+        title={`material-${material.material_id}`}
+        className="w-full rounded-lg"
+        style={{ height: 360 }}
+      />
+    );
+  }
+
+  if (mime.startsWith('video/') || /\.(mp4|webm|ogg)(\?|$)/i.test(url)) {
+    return (
+      <video controls src={url} className="w-full rounded-lg" style={{ maxHeight: 360 }}>
+        Tu navegador no soporta video.
+      </video>
+    );
+  }
+
+  if (mime.startsWith('audio/') || /\.(mp3|wav|ogg)(\?|$)/i.test(url)) {
+    return (
+      <audio controls className="w-full">
+        <source src={url} type={mime || undefined} />
+        Tu navegador no soporta audio.
+      </audio>
+    );
+  }
+
+  if (mime.startsWith('image/') || /\.(png|jpe?g|gif|svg)(\?|$)/i.test(url)) {
+    return <img src={url} alt="Material" className="rounded-lg w-full object-cover" />;
+  }
+
+  return null;
 }
 
 export default function MaterialesCurso() {
@@ -377,24 +426,37 @@ export default function MaterialesCurso() {
                           {elem.mime_type && (
                             <div className="text-gray-700 font-medium mb-3">{elem.mime_type}</div>
                           )}
-                          {elem.ruta_archivo && isDriveLink(elem.ruta_archivo) && (
-                            <div className="mb-4">
-                              {elem.content_type === 'video' ? (
-                                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                          {elem.ruta_archivo && (
+                            <div className="mb-4 space-y-3">
+                              {isDriveLink(elem.ruta_archivo) ? (
+                                elem.content_type === 'video' ? (
+                                  <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                                    <iframe
+                                      src={convertDriveUrl(elem.ruta_archivo, elem.content_type) || elem.ruta_archivo}
+                                      allow="autoplay; encrypted-media"
+                                      allowFullScreen
+                                      title="Drive" style={{ position: 'absolute', top:0, left:0, width:'100%', height:'100%' }} />
+                                  </div>
+                                ) : elem.content_type === 'pdf' ? (
                                   <iframe
                                     src={convertDriveUrl(elem.ruta_archivo, elem.content_type) || elem.ruta_archivo}
-                                    allow="autoplay; encrypted-media"
-                                    allowFullScreen
-                                    title="Drive" style={{ position: 'absolute', top:0, left:0, width:'100%', height:'100%' }} />
-                                </div>
-                              ) : elem.content_type === 'pdf' ? (
-                                <iframe
-                                  src={convertDriveUrl(elem.ruta_archivo, elem.content_type) || elem.ruta_archivo}
-                                  style={{ width: '100%', height: 320 }}
-                                  title="PDF preview" />
+                                    style={{ width: '100%', height: 320 }}
+                                    title="PDF preview" />
+                                ) : (
+                                  <img src={elem.ruta_archivo} alt="Material" className="rounded-lg" />
+                                )
                               ) : (
-                                <img src={elem.ruta_archivo} alt="Material" className="rounded-lg" />
+                                renderMaterialPreview(elem)
                               )}
+                              <a
+                                href={resolveMaterialUrl(elem.ruta_archivo) || elem.ruta_archivo || ''}
+                                target="_blank"
+                                rel="noreferrer"
+                                download
+                                className="inline-flex items-center gap-2 text-blue-600 text-sm font-semibold"
+                              >
+                                Descargar archivo
+                              </a>
                             </div>
                           )}
                           {/* Otros detalles del material pueden ir aquí */}

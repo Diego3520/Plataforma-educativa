@@ -21,8 +21,10 @@ import diagnosticoRoutes from './routes/diagnosticoRoutes';
 import codeExecutorRoutes from './routes/codeExecutorRoutes';
 import authRoutes from './routes/authRoutes';
 import comentarioEditorRoutes from './routes/comentarioEditorRoutes';
+import uploadRoutes from './routes/uploadRoutes';
 import pool from './db';
 import { initializeSocket } from './socket/socketServer';
+import { uploadsDir } from './utils/uploadsPath';
 
 
 const app = express();
@@ -34,6 +36,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use('/uploads', express.static(uploadsDir));
 
 // Configuración de sesión para passport
 app.use(session({
@@ -62,6 +65,7 @@ app.use('/api/diagnosticos', diagnosticoRoutes);
 app.use('/api/code-executor', codeExecutorRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/comentarios-editor', comentarioEditorRoutes);
+app.use('/api/uploads', uploadRoutes);
 // Ruta adicional para Microsoft OAuth sin /api (para compatibilidad con callback URL)
 app.use('/auth', authRoutes);
 

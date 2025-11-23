@@ -21,7 +21,7 @@ export class emailService {
     });
 
     // Verificar la configuración del transporter
-    this.transporter.verify((error) => {
+    this.transporter.verify((error, success) => {
       if (error) {
         console.error('Error en configuración de email:', error);
       } else {

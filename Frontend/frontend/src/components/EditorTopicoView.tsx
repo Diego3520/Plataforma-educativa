@@ -48,6 +48,7 @@ type Material = {
   ruta_archivo: string | null;
   content_type: 'pdf' | 'video' | 'imagen' | 'otro';
   id_curso: number;
+  activo: boolean;
 };
 
 const baseApi = 'http://localhost:5000/api';

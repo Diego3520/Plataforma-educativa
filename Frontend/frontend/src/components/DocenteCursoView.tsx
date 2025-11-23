@@ -39,6 +39,7 @@ type Material = {
   content_type: 'pdf' | 'video' | 'imagen' | 'otro';
   creado_at: string;
   activo: boolean;
+  id_curso: number;
 };
 
 type Tarea = {
@@ -421,8 +422,20 @@ export default function DocenteCursoView() {
           </button>
           <button
             onClick={() => {
-              setMaterialForm({ solucion_modelo: '', content_type: 'otro', activo: true });
-              setShowMaterialModal(true);
+                setMaterialForm({
+                    solucion_modelo: '',
+                    ruta_archivo: '',
+                    content_type: 'otro',
+                    activo: true,
+                    crearTarea: false,
+                    tarea_fecha_publicacion: new Date().toISOString().split('T')[0],
+                    tarea_fecha_limite: '',
+                    tarea_material_id: '',
+                    tarea_nota_max: '',
+                    tarea_solucion_aportada: '',
+                    tarea_id_topico: ''
+                });
+                setShowMaterialModal(true);
             }}
             className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700"
           >

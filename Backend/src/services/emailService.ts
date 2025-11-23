@@ -1,43 +1,27 @@
-import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import sgMail from '@sendgrid/mail';
 
 dotenv.config();
 
 export class emailService {
-  private transporter: nodemailer.Transporter;
-
   constructor() {
-    console.log('🔧 Configurando emailService...');
-    console.log('EMAIL_SERVICE:', process.env.EMAIL_SERVICE);
-    console.log('EMAIL_USER:', process.env.EMAIL_USER);
-    console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***configurado***' : 'NO CONFIGURADO');
-    
-    this.transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
-
-    // Verificar la configuración del transporter
-    this.transporter.verify((error) => {
-      if (error) {
-        console.error('Error en configuración de email:', error);
-      } else {
-        console.log('Servidor de email listo para enviar mensajes');
-      }
-    });
+    console.log('🔧 Configurando emailService con SendGrid...');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+    console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY ? '***configurado***' : 'NO CONFIGURADO');
+    console.log('EMAIL_FROM:', process.env.EMAIL_FROM);
   }
 
   async enviarCodigoVerificacion(email: string, codigo: string): Promise<boolean> {
     try {
       console.log(`Enviando código de verificación a: ${email}`);
       console.log(`Código generado: ${codigo}`);
-      
-      const mailOptions = {
-        from: `"Plataforma Educativa" <${process.env.EMAIL_USER}>`,
+
+      const msg = {
         to: email,
+        from: {
+          email: process.env.EMAIL_FROM || '',
+          name: 'Plataforma Educativa'
+        },
         subject: 'Código de verificación - Plataforma Educativa',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -55,16 +39,15 @@ export class emailService {
         text: `Código de verificación: ${codigo}\n\nEste código expirará en 1 hora.\n\nSi no has solicitado este código, puedes ignorar este correo.`
       };
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log(' Email enviado exitosamente:', info.messageId);
+      const info = await sgMail.send(msg);
+      console.log('Email enviado exitosamente:', info[0]?.statusCode);
       return true;
     } catch (error) {
-      console.error(' Error al enviar email:', error);
-      console.error('Detalles del error:', {
-        code: (error as any).code,
-        command: (error as any).command,
-        response: (error as any).response
-      });
+      console.error('Error al enviar email:', error);
+      const err = error as any;
+      if (err.response && err.response.body && err.response.body.errors) {
+        console.error('Detalles del error:', err.response.body.errors);
+      }
       return false;
     }
   }

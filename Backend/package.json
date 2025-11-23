@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "jest --config jest.config.ts --runInBand",
+    "test:watch": "jest --config jest.config.ts --watch"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",

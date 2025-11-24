@@ -43,9 +43,9 @@ type ComentarioEditor = {
   actualizado_at: string | null;
 };
 
-const baseApi = 'http://localhost:5000/api';
+const baseApi = 'https://plataforma-educativa-production-12c8.up.railway.app/api';
 const baseServerUrl = baseApi.replace(/\/api\/?$/, '');
-const socketUrl = 'http://localhost:5000';
+const socketUrl = 'https://plataforma-educativa-production-12c8.up.railway.app';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);

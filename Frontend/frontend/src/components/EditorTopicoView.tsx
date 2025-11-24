@@ -51,8 +51,8 @@ type Material = {
   activo: boolean;
 };
 
-const baseApi = 'http://localhost:5000/api';
-const socketUrl = 'http://localhost:5000';
+const baseApi = 'https://plataforma-educativa-production-12c8.up.railway.app/api';
+const socketUrl = 'https://plataforma-educativa-production-12c8.up.railway.app';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);

@@ -47,12 +47,12 @@ function LoginForm({ onClose }: LoginFormProps) {
 
     // Google OAuth login
     const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:5000/auth/google"
+        window.location.href = "https://plataforma-educativa-production-12c8.up.railway.app/auth/google"
     }
 
     // Microsoft OAuth login (Nuevo: funcional)
     const handleMicrosoftLogin = () => {
-        window.location.href = "http://localhost:5000/auth/microsoft"
+        window.location.href = "https://plataforma-educativa-production-12c8.up.railway.app/auth/microsoft"
     }
 
     return (

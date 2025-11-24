@@ -32,7 +32,7 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
 export default function GestionCursos() {
   const navigate = useNavigate();
   const usuario = authService.getUser() as Usuario | null;
-  const baseApi = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api';
+  const baseApi = (import.meta as any).env.VITE_API_URL || 'https://plataforma-educativa-production-12c8.up.railway.app/api';
 
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [docentes, setDocentes] = useState<Usuario[]>([]);

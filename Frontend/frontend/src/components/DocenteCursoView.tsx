@@ -66,7 +66,7 @@ export default function DocenteCursoView() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const usuario = authService.getUser() as Usuario | null;
-  const baseApi = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api';
+  const baseApi = (import.meta as any).env.VITE_API_URL || 'https://plataforma-educativa-production-12c8.up.railway.app/api';
 
   const [curso, setCurso] = useState<Curso | null>(null);
   const [topicos, setTopicos] = useState<Topico[]>([]);

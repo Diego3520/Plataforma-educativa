@@ -51,33 +51,45 @@ export class authController {
     static async google(req: Request, res: Response) {
         const { token } = req.body;
         try {
-            const ticket = await googleClient.verifyIdToken({ idToken: token, audience: googleClientId });
-            const payload = ticket.getPayload();
-            if (!payload || !payload.email)
-                return res.status(400).json({ error: 'Token inválido' });
+          const ticket = await googleClient.verifyIdToken({ idToken: token, audience: googleClientId });
+          const payload = ticket.getPayload();
+          if (!payload || !payload.email)
+            return res.status(400).json({ error: 'Token inválido' });
 
-            const repo = new usuarioRepository();
-      let usuario = await repo.findByCorreo(payload.email);
+          const repo = new usuarioRepository();
+          let usuario = await repo.findByCorreo(payload.email);
 
-      if (!usuario) {
-        const usuarioSrv = new usuarioService();
-        usuario = await usuarioSrv.crearUsuario({
-          nombre: (payload.given_name as string) || (payload.name as string)?.split(' ')[0] || 'GoogleUser',
-          apellido: (payload.family_name as string) || (payload.name as string)?.split(' ').slice(1).join(' ') || '',
-          tipo: 'alumno',
-          correo: payload.email,
-                    google_id: payload.sub,
-          avatar_url: (payload as any).picture || null,
-          activo: true
-        });
-            } else if (!usuario.google_id) {
-                // Update existing user with Google ID
-                await repo.update(usuario.id_usuario, { google_id: payload.sub });
-                usuario.google_id = payload.sub;
-      }
+          if (!usuario) {
+            const usuarioSrv = new usuarioService();
+            usuario = await usuarioSrv.crearUsuario({
+              nombre: (payload.given_name as string) || (payload.name as string)?.split(' ')[0] || 'GoogleUser',
+              apellido: (payload.family_name as string) || (payload.name as string)?.split(' ').slice(1).join(' ') || '',
+              tipo: 'alumno',
+              correo: payload.email,
+              google_id: payload.sub,
+              avatar_url: (payload as any).picture || null,
+              activo: false // Nuevo usuario NO activo por defecto
+            });
+          } else if (!usuario.google_id) {
+            // Update existing user with Google ID
+            await repo.update(usuario.id_usuario, { google_id: payload.sub });
+            usuario.google_id = payload.sub;
+          }
 
-      const jwtToken = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
-      return res.json({ token: jwtToken, usuario });
+          // Verificar si el usuario está activo
+          if (usuario.activo) {
+            const jwtToken = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
+            // Redirige al frontend con token y datos
+            return res.redirect(
+              `https://plataforma-educativa-kappa.vercel.app/auth/callback?token=${jwtToken}&provider=google&nombre=${encodeURIComponent(usuario.nombre ?? "")}&email=${encodeURIComponent(usuario.correo ?? "")}&tipo=${encodeURIComponent(usuario.tipo ?? "")}&id=${usuario.id_usuario}`
+            );
+          } else {
+            // Usuario NO activo: enviar código y redirigir para verificación
+                await service.generarYEnviarCodigo(usuario.id_usuario, usuario.correo ?? "");
+            return res.redirect(
+              `https://plataforma-educativa-kappa.vercel.app/auth/callback?email=${encodeURIComponent(usuario.correo ?? "")}&needs_verification=true`
+            );
+          }
         } catch (err) {
             console.error('Google auth error:', err);
             return res.status(401).json({ error: 'Autenticación con Google fallida' });

@@ -3,48 +3,48 @@ name: Deploy to Cloud Run
 on:
   push:
     branches:
-      - [cite_start] develop
+      - develop
 
 env:
-  [cite_start]PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }} # [cite: 87]
-  SERVICE_NAME: straydogs # Nombre tomado de tu imagen
-  REGION: southamerica-east1 # Región tomada de tu imagen (São Paulo)
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SERVICE_NAME: straydogs
+  REGION: southamerica-east1
 
 jobs:
   deploy:
-    [cite_start]runs-on: ubuntu-latest # [cite: 82]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. Autenticación con Google Cloud usando el secreto JSON
+      # 1. Autenticación con Google Cloud
       - name: Google Auth
         id: auth
         uses: 'google-github-actions/auth@v2'
         with:
-          [cite_start]credentials_json: '${{ secrets.GCP_CREDENTIALS }}' # [cite: 89]
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
       # 2. Configurar Cloud SDK
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v2'
 
-      # 3. Configurar Docker para usar las credenciales de Google
+      # 3. Configurar Docker
       - name: Configure Docker
         run: |
           gcloud auth configure-docker
 
-      # 4. Construir y Subir la imagen (Build & Push) a Google Container Registry
+      # 4. Build & Push
       - name: Build and Push Container
         run: |
           docker build -t gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} .
-          docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} 
+          docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }}
 
-      # 5. Desplegar en Cloud Run
+      # 5. Deploy
       - name: Deploy to Cloud Run
         uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
           service: ${{ env.SERVICE_NAME }}
           image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
           region: ${{ env.REGION }}
-          flags: '--allow-unauthenticated' # Para acceso público si así lo deseas
+          flags: '--allow-unauthenticated'

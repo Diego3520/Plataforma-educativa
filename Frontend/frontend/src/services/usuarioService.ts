@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://straydogs-290096756800.southamerica-east1.run.app/api';
 
 export type Usuario = {
   id_usuario: number;

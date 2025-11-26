@@ -81,13 +81,13 @@ export class authController {
             const jwtToken = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
             // Redirige al frontend con token y datos
             return res.redirect(
-              `http://localhost:5000/auth/callback?token=${jwtToken}&provider=google&nombre=${encodeURIComponent(usuario.nombre ?? "")}&email=${encodeURIComponent(usuario.correo ?? "")}&tipo=${encodeURIComponent(usuario.tipo ?? "")}&id=${usuario.id_usuario}`
+              `https://straydogs-290096756800.southamerica-east1.run.app/auth/callback?token=${jwtToken}&provider=google&nombre=${encodeURIComponent(usuario.nombre ?? "")}&email=${encodeURIComponent(usuario.correo ?? "")}&tipo=${encodeURIComponent(usuario.tipo ?? "")}&id=${usuario.id_usuario}`
             );
           } else {
             // Usuario NO activo: enviar código y redirigir para verificación
                 await service.generarYEnviarCodigo(usuario.id_usuario, usuario.correo ?? "");
             return res.redirect(
-              `http://localhost:5000/auth/callback?email=${encodeURIComponent(usuario.correo ?? "")}&needs_verification=true`
+              `https://straydogs-290096756800.southamerica-east1.run.app/auth/callback?email=${encodeURIComponent(usuario.correo ?? "")}&needs_verification=true`
             );
           }
         } catch (err) {

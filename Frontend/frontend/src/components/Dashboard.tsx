@@ -34,7 +34,7 @@ type Material = {
 };
 
 
-const baseApi = 'http://localhost:5000/api';
+const baseApi = 'https://straydogs-290096756800.southamerica-east1.run.app/api';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);

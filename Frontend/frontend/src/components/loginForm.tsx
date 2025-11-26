@@ -47,12 +47,12 @@ function LoginForm({ onClose }: LoginFormProps) {
 
     // Google OAuth login
     const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:5000/auth/google"
+        window.location.href = "https://straydogs-290096756800.southamerica-east1.run.app/auth/google"
     }
 
     // Microsoft OAuth login (Nuevo: funcional)
     const handleMicrosoftLogin = () => {
-        window.location.href = "http://localhost:5000/auth/microsoft"
+        window.location.href = "https://straydogs-290096756800.southamerica-east1.run.app/auth/microsoft"
     }
 
     return (

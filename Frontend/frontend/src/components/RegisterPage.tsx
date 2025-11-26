@@ -85,11 +85,11 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
     };
 
     const handleGoogleRegister = () => {
-        window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/auth/google`;
+        window.location.href = `${import.meta.env.VITE_API_URL || 'https://straydogs-290096756800.southamerica-east1.run.app'}/auth/google`;
     };
 
     const handleMicrosoftRegister = () => {
-        window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/auth/microsoft`;
+        window.location.href = `${import.meta.env.VITE_API_URL || 'https://straydogs-290096756800.southamerica-east1.run.app'}/auth/microsoft`;
     };
 
     const handleReenviarCodigo = async () => {

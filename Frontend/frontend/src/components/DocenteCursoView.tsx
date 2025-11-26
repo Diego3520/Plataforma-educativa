@@ -66,7 +66,7 @@ export default function DocenteCursoView() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const usuario = authService.getUser() as Usuario | null;
-  const baseApi = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api';
+  const baseApi = (import.meta as any).env.VITE_API_URL || 'https://straydogs-290096756800.southamerica-east1.run.app/api';
 
   const [curso, setCurso] = useState<Curso | null>(null);
   const [topicos, setTopicos] = useState<Topico[]>([]);

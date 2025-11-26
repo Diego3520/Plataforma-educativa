@@ -7,7 +7,7 @@ let io: SocketServer | null = null;
 export function initializeSocket(server: HttpServer) {
   io = new SocketServer(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:8000',
+      origin: process.env.FRONTEND_URL || 'https://straydogs-290096756800.southamerica-east1.run.app',
       credentials: true
     }
   });

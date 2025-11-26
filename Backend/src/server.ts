@@ -37,7 +37,7 @@ const pORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
 // Configuración de CORS
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:8000',
+    origin: process.env.FRONTEND_URL || 'https://straydogs-290096756800.southamerica-east1.run.app',
     credentials: true
 }));
 

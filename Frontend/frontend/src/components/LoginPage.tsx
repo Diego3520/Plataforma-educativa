@@ -28,7 +28,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onSwitchToRegister }) 
         setLoading(true);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://plataforma-educativa-production-12c8.up.railway.app/api'}/auth/login`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

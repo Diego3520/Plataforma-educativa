@@ -1,5 +1,5 @@
 import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as GoogleStrategy, Profile as GoogleProfile, VerifyCallback } from 'passport-google-oauth20';
 import { Strategy as MicrosoftStrategy } from 'passport-microsoft';
 
 // Google Strategy
@@ -8,7 +8,7 @@ passport.use(new GoogleStrategy({
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         callbackURL: process.env.GOOGLE_CALLBACK_URL!,
     },
-    async (accessToken, refreshToken, profile, done) => {
+    async (accessToken: string, refreshToken: string, profile: GoogleProfile, done: VerifyCallback) => {
         return done(null, profile);
     }
 ));
@@ -20,8 +20,7 @@ passport.use(new MicrosoftStrategy({
         callbackURL: process.env.MICROSOFT_CALLBACK_URL!,
         scope: ['user.read'],
     },
-    async (accessToken, refreshToken, profile, done) => {
-        // El objeto profile puede variar, revisa la estructura
+    async (accessToken: string, refreshToken: string, profile: any, done: VerifyCallback) => {
         return done(null, profile);
     }
 ));

@@ -1,0 +1,89 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Archivos de entorno
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README.md
+docs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# CodeExecutor (excluido del build)
+CodeExecutor/
+
+# Uploads (se manejan como volumen)
+Backend/uploads/*
+!Backend/uploads/.gitkeep
+
+# Tests
+Backend/tests/
+Frontend/frontend/tests/
+*.test.ts
+*.test.tsx
+*.test.js
+*.spec.ts
+*.spec.tsx
+*.spec.js
+setupTests.ts
+
+# Development files
+start-dev.bat
+start-dev.sh
+*.example
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+ESLint y Jest.yml
+
+# Vercel
+.vercel/
+vercel.json
+
+# Misc
+*.orig
+tmp/
+temp/
+.cache/
+

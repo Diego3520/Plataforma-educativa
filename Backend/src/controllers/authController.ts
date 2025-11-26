@@ -240,7 +240,7 @@ export class authController {
       const user = req.user as any;
 
       if (!user) {
-        return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+        return res.redirect(`https://straydogs-290096756800.southamerica-east1.run.app/login?error=auth_failed`);
       }
 
       const correo = user.emails[0].value;
@@ -268,13 +268,13 @@ export class authController {
 
         if (!codigoEnviado) {
           console.error('Error enviando código de verificación');
-          return res.redirect(`${process.env.FRONTEND_URL}/login?error=email_failed`);
+          return res.redirect(`https://straydogs-290096756800.southamerica-east1.run.app/login?error=email_failed`);
         }
 
         console.log('Usuario OAuth creado y código enviado');
 
         // Redirigir a página de verificación con el email
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?email=${encodeURIComponent(correo)}&provider=google&needs_verification=true`;
+        const redirectUrl = `https://straydogs-290096756800.southamerica-east1.run.app/auth/callback?email=${encodeURIComponent(correo)}&provider=google&needs_verification=true`;
         return res.redirect(redirectUrl);
       } else if (!usuario.google_id) {
         console.log('Actualizando usuario existente con Google ID');
@@ -294,7 +294,7 @@ export class authController {
         });
         const token = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
         const nombreCompleto = `${usuario.nombre} ${usuario.apellido}`.trim();
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=google&nombre=${encodeURIComponent(nombreCompleto)}&email=${encodeURIComponent(usuario.correo || '')}&tipo=${usuario.tipo}&id=${usuario.id_usuario}`;
+        const redirectUrl = `https://straydogs-290096756800.southamerica-east1.run.app/auth/callback?token=${token}&provider=google&nombre=${encodeURIComponent(nombreCompleto)}&email=${encodeURIComponent(usuario.correo || '')}&tipo=${usuario.tipo}&id=${usuario.id_usuario}`;
         console.log('URL de redirección:', redirectUrl);
         return res.redirect(redirectUrl);
       } else {
@@ -305,15 +305,15 @@ export class authController {
 
         if (!codigoEnviado) {
           console.error('Error enviando código de verificación');
-          return res.redirect(`${process.env.FRONTEND_URL}/login?error=email_failed`);
+          return res.redirect(`https://straydogs-290096756800.southamerica-east1.run.app/login?error=email_failed`);
         }
 
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?email=${encodeURIComponent(correo)}&provider=google&needs_verification=true`;
+        const redirectUrl = `https://straydogs-290096756800.southamerica-east1.run.app/auth/callback?email=${encodeURIComponent(correo)}&provider=google&needs_verification=true`;
       return res.redirect(redirectUrl);
       }
     } catch (error: any) {
       console.error('Google callback error:', error);
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=callback_failed`);
+      return res.redirect(`https://straydogs-290096756800.southamerica-east1.run.app/login?error=callback_failed`);
     }
   }
 
@@ -323,7 +323,7 @@ export class authController {
       const user = req.user as any;
 
       if (!user) {
-        return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+        return res.redirect(`https://straydogs-290096756800.southamerica-east1.run.app/login?error=auth_failed`);
       }
 
       const correo = user.emails?.[0]?.value || user._json?.mail;
@@ -351,13 +351,13 @@ export class authController {
 
         if (!codigoEnviado) {
           console.error('Error enviando código de verificación');
-          return res.redirect(`${process.env.FRONTEND_URL}/login?error=email_failed`);
+          return res.redirect(`https://straydogs-290096756800.southamerica-east1.run.app/login?error=email_failed`);
         }
 
         console.log('Usuario OAuth creado y código enviado');
 
         // Redirigir a página de verificación con el email
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?email=${encodeURIComponent(correo)}&provider=microsoft&needs_verification=true`;
+        const redirectUrl = `https://straydogs-290096756800.southamerica-east1.run.app/auth/callback?email=${encodeURIComponent(correo)}&provider=microsoft&needs_verification=true`;
         return res.redirect(redirectUrl);
       } else if (!usuario.microsoft_id) {
         console.log('Actualizando usuario existente con Microsoft ID');
@@ -377,7 +377,7 @@ export class authController {
         });
         const token = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
         const nombreCompleto = `${usuario.nombre} ${usuario.apellido}`.trim();
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=microsoft&nombre=${encodeURIComponent(nombreCompleto)}&email=${encodeURIComponent(usuario.correo || '')}&tipo=${usuario.tipo}&id=${usuario.id_usuario}`;
+        const redirectUrl = `https://straydogs-290096756800.southamerica-east1.run.app/auth/callback?token=${token}&provider=microsoft&nombre=${encodeURIComponent(nombreCompleto)}&email=${encodeURIComponent(usuario.correo || '')}&tipo=${usuario.tipo}&id=${usuario.id_usuario}`;
         console.log('URL de redirección:', redirectUrl);
         return res.redirect(redirectUrl);
       } else {
@@ -388,15 +388,15 @@ export class authController {
 
         if (!codigoEnviado) {
           console.error('Error enviando código de verificación');
-          return res.redirect(`${process.env.FRONTEND_URL}/login?error=email_failed`);
+          return res.redirect(`https://straydogs-290096756800.southamerica-east1.run.app/login?error=email_failed`);
         }
 
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?email=${encodeURIComponent(correo)}&provider=microsoft&needs_verification=true`;
+        const redirectUrl = `https://straydogs-290096756800.southamerica-east1.run.app/auth/callback?email=${encodeURIComponent(correo)}&provider=microsoft&needs_verification=true`;
       return res.redirect(redirectUrl);
       }
     } catch (error: any) {
       console.error('Microsoft callback error:', error);
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=callback_failed`);
+      return res.redirect(`https://straydogs-290096756800.southamerica-east1.run.app/login?error=callback_failed`);
     }
   }
  }

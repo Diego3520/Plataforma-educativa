@@ -109,4 +109,11 @@ jobs:
 
       - name: Run Backend tests
         working-directory: Backend
+        env:
+          PGUSER: 'test_user'
+          PGHOST: 'localhost'
+          PGDATABASE: 'test_db'
+          PGPASSWORD: 'test_password'
+          PGPORT: '5432'
+          JWT_SECRET: 'test_secret'
         run: npm test

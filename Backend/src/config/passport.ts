@@ -8,7 +8,7 @@ dotenv.config();
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID || '',
   clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-  callbackURL: process.env.GOOGLE_CALLBACK_URL || `${process.env.BACKEND_URL}/auth/google/callback`,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL || `https://straydogs-290096756800.southamerica-east1.run.app/auth/google/callback`,
   scope: ['profile', 'email']
 }, (_accessToken: string, _refreshToken: string, profile: GoogleProfile, done: (error: any, user?: any) => void) => {
   return done(null, profile);
@@ -18,7 +18,7 @@ passport.use(new GoogleStrategy({
 passport.use(new MicrosoftStrategy({
   clientID: process.env.MICROSOFT_CLIENT_ID || '',
   clientSecret: process.env.MICROSOFT_CLIENT_SECRET || '',
-  callbackURL: process.env.MICROSOFT_CALLBACK_URL || `${process.env.BACKEND_URL}/auth/microsoft/callback`,
+  callbackURL: process.env.MICROSOFT_CALLBACK_URL || `https://straydogs-290096756800.southamerica-east1.run.app/auth/microsoft/callback`,
   scope: ['user.read', 'user.readbasic.all', 'mail.read']
 }, (_accessToken: string, _refreshToken: string, profile: PassportProfile, done: (error: any, user?: any) => void) => {
   return done(null, profile);

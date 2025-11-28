@@ -36,9 +36,30 @@ export class inscritoController {
       if (isNaN(usuarioId)) {
         return res.status(400).json({ error: 'ID de usuario invalido' });
       }
-      const inscritos = await service.obtenerInscritosPorUsuarioId(usuarioId);
-      return res.json(inscritos);
+      // Devolver cursos con información completa en lugar de solo inscritos
+      const cursos = await service.obtenerCursosPorUsuarioId(usuarioId);
+      return res.json(cursos);
     } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async inscribirsePorCodigo(req: Request, res: Response) {
+    try {
+      const errores = validationResult(req);
+      if (!errores.isEmpty()) {
+        return res.status(400).json({ errores: errores.array() });
+      }
+      const { codigo_curso: codigoCurso, id_usuario: usuarioId } = req.body;
+      if (!codigoCurso || !usuarioId) {
+        return res.status(400).json({ error: 'codigo_curso e id_usuario son requeridos' });
+      }
+      const inscripcion = await service.inscribirsePorCodigo(codigoCurso, usuarioId);
+      return res.status(201).json(inscripcion);
+    } catch (error: any) {
+      if (error.message.includes('Ya estás inscrito') || error.message.includes('no encontrado')) {
+        return res.status(400).json({ error: error.message });
+      }
       return res.status(500).json({ error: error.message });
     }
   }

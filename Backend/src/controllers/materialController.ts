@@ -40,6 +40,19 @@ export class materialController {
     }
   }
 
+  static async verPorCurso(req: Request, res: Response) {
+    try {
+      const cursoId = parseInt(req.params.id_curso);
+      if (isNaN(cursoId)) {
+        return res.status(400).json({ error: 'ID de curso invalido' });
+      }
+      const materiales = await service.obtenerMaterialesPorCurso(cursoId);
+      return res.json(materiales);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
   static async crear(req: Request, res: Response) {
     try {
       const errores = validationResult(req);
@@ -47,6 +60,9 @@ export class materialController {
         return res.status(400).json({ errores: errores.array() });
       }
       const payload = req.body;
+      if (!payload.id_curso) {
+        return res.status(400).json({ error: 'id_curso es requerido' });
+      }
       const nuevo = await service.crearMaterial(payload);
       return res.status(201).json(nuevo);
     } catch (error: any) {

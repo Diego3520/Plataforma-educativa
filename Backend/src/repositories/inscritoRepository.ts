@@ -20,6 +20,34 @@ export class inscritoRepository {
     return res.rows;
   }
 
+  async findCursosByUsuarioId(usuarioId: number): Promise<any[]> {
+    const query = `
+      SELECT 
+        i.id_inscritos,
+        i.id_topico,
+        i.id_usuario,
+        i.fecha_inscripcion,
+        t.id_topico as topico_id,
+        t.titulo,
+        t.descripcion,
+        t.activo as topico_activo,
+        c.id_curso,
+        c.codigo,
+        c.titulo as curso_titulo,
+        c.descripcion as curso_descripcion,
+        c.docente_id,
+        c.activo as curso_activo,
+        c.fecha_creacion
+      FROM inscritos i
+      INNER JOIN topico t ON i.id_topico = t.id_topico
+      INNER JOIN cursos c ON t.id_curso = c.id_curso
+      WHERE i.id_usuario = $1
+      ORDER BY i.fecha_inscripcion DESC
+    `;
+    const res = await pool.query(query, [usuarioId]);
+    return res.rows;
+  }
+
   async findByTopicoId(topicoId: number): Promise<inscrito[]> {
     const res = await pool.query('SELECT * FROM inscritos WHERE id_topico = $1 ORDER BY fecha_inscripcion', [topicoId]);
     return res.rows;

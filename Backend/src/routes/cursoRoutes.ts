@@ -28,22 +28,24 @@ router.get('/evaluador/:evaluadorId',
 
 router.post('/',
   body('codigo').notEmpty().withMessage('codigo obligatorio'),
-  body('editor_id').optional().isInt().withMessage('editor_id debe ser entero'),
-  body('docente_id').optional().isInt().withMessage('docente_id debe ser entero'),
-  body('evaluador_id').optional().isInt().withMessage('evaluador_id debe ser entero'),
-  body('titulo').optional().isString().withMessage('titulo debe ser texto'),
-  body('descripcion').optional().isString().withMessage('descripcion debe ser texto'),
+  body('editor_id').optional({ nullable: true }).isInt().withMessage('editor_id debe ser entero'),
+  body('docente_id').optional({ nullable: true }).isInt().withMessage('docente_id debe ser entero'),
+  body('evaluador_id').optional({ nullable: true }).isInt().withMessage('evaluador_id debe ser entero'),
+  body('titulo').optional({ nullable: true }).isString().withMessage('titulo debe ser texto'),
+  body('descripcion').optional({ nullable: true }).isString().withMessage('descripcion debe ser texto'),
+  body('activo').optional().isBoolean().withMessage('activo debe ser booleano'),
   cursoController.crear
 );
 
 router.put('/:id',
   param('id').isInt().withMessage('ID debe ser entero'),
   body('codigo').optional().notEmpty().withMessage('codigo no puede estar vacio'),
-  body('editor_id').optional().isInt().withMessage('editor_id debe ser entero'),
-  body('docente_id').optional().isInt().withMessage('docente_id debe ser entero'),
-  body('evaluador_id').optional().isInt().withMessage('evaluador_id debe ser entero'),
-  body('titulo').optional().isString().withMessage('titulo debe ser texto'),
-  body('descripcion').optional().isString().withMessage('descripcion debe ser texto'),
+  body('editor_id').optional({ nullable: true }).isInt().withMessage('editor_id debe ser entero'),
+  body('docente_id').optional({ nullable: true }).isInt().withMessage('docente_id debe ser entero'),
+  body('evaluador_id').optional({ nullable: true }).isInt().withMessage('evaluador_id debe ser entero'),
+  body('titulo').optional({ nullable: true }).isString().withMessage('titulo debe ser texto'),
+  body('descripcion').optional({ nullable: true }).isString().withMessage('descripcion debe ser texto'),
+  body('activo').optional().isBoolean().withMessage('activo debe ser booleano'),
   cursoController.actualizar
 );
 

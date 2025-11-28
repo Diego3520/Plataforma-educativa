@@ -24,6 +24,31 @@ export class inscritoService {
     return await this.repo.findByUsuarioId(usuarioId);
   }
 
+  async obtenerCursosPorUsuarioId(usuarioId: number): Promise<any[]> {
+    return await this.repo.findCursosByUsuarioId(usuarioId);
+  }
+
+  async inscribirsePorCodigo(codigoCurso: string, usuarioId: number): Promise<inscrito> {
+    // Verificar si el usuario ya está inscrito en algún tópico de este curso
+    const cursosUsuario = await this.repo.findCursosByUsuarioId(usuarioId);
+    const yaInscrito = cursosUsuario.some((c: any) => c.codigo === codigoCurso);
+    
+    if (yaInscrito) {
+      throw new Error('Ya estás inscrito en este curso');
+    }
+
+    // Obtener el tópico por código de curso
+    const { topicoService } = await import('./topicoService');
+    const topicoServiceInstance = new topicoService();
+    const topico = await topicoServiceInstance.obtenerTopicoPorCodigoCurso(codigoCurso);
+    
+    // Crear la inscripción
+    return await this.crearInscrito({
+      id_topico: topico.id_topico,
+      id_usuario: usuarioId
+    });
+  }
+
   async obtenerInscritosPorTopicoId(topicoId: number): Promise<inscrito[]> {
     return await this.repo.findByTopicoId(topicoId);
   }

@@ -27,11 +27,11 @@ export class authController {
         const { correo, password } = req.body;
         const repo = new usuarioRepository();
         const usuario = await repo.findByCorreo(correo);
-        
+
         if (!usuario) {
             return res.status(404).json({ error: 'Usuario no existe o no tiene contraseña' });
         }
-        
+
         if (!usuario.password_hash) {
             return res.status(404).json({ error: 'Usuario no tiene contraseña configurada' });
         }
@@ -51,33 +51,45 @@ export class authController {
     static async google(req: Request, res: Response) {
         const { token } = req.body;
         try {
-            const ticket = await googleClient.verifyIdToken({ idToken: token, audience: googleClientId });
-            const payload = ticket.getPayload();
-            if (!payload || !payload.email)
-                return res.status(400).json({ error: 'Token inválido' });
+          const ticket = await googleClient.verifyIdToken({ idToken: token, audience: googleClientId });
+          const payload = ticket.getPayload();
+          if (!payload || !payload.email)
+            return res.status(400).json({ error: 'Token inválido' });
 
-            const repo = new usuarioRepository();
-      let usuario = await repo.findByCorreo(payload.email);
+          const repo = new usuarioRepository();
+          let usuario = await repo.findByCorreo(payload.email);
 
-      if (!usuario) {
-        const usuarioSrv = new usuarioService();
-        usuario = await usuarioSrv.crearUsuario({
-          nombre: (payload.given_name as string) || (payload.name as string)?.split(' ')[0] || 'GoogleUser',
-          apellido: (payload.family_name as string) || (payload.name as string)?.split(' ').slice(1).join(' ') || '',
-          tipo: 'alumno',
-          correo: payload.email,
-                    google_id: payload.sub,
-          avatar_url: (payload as any).picture || null,
-          activo: true
-        });
-            } else if (!usuario.google_id) {
-                // Update existing user with Google ID
-                await repo.update(usuario.id_usuario, { google_id: payload.sub });
-                usuario.google_id = payload.sub;
-      }
+          if (!usuario) {
+            const usuarioSrv = new usuarioService();
+            usuario = await usuarioSrv.crearUsuario({
+              nombre: (payload.given_name as string) || (payload.name as string)?.split(' ')[0] || 'GoogleUser',
+              apellido: (payload.family_name as string) || (payload.name as string)?.split(' ').slice(1).join(' ') || '',
+              tipo: 'alumno',
+              correo: payload.email,
+              google_id: payload.sub,
+              avatar_url: (payload as any).picture || null,
+              activo: false // Nuevo usuario NO activo por defecto
+            });
+          } else if (!usuario.google_id) {
+            // Update existing user with Google ID
+            await repo.update(usuario.id_usuario, { google_id: payload.sub });
+            usuario.google_id = payload.sub;
+          }
 
-      const jwtToken = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
-      return res.json({ token: jwtToken, usuario });
+          // Verificar si el usuario está activo
+          if (usuario.activo) {
+            const jwtToken = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
+            // Redirige al frontend con token y datos
+            return res.redirect(
+              `${process.env.FRONTEND_URL}/auth/callback?token=${jwtToken}&provider=google&nombre=${encodeURIComponent(usuario.nombre ?? "")}&email=${encodeURIComponent(usuario.correo ?? "")}&tipo=${encodeURIComponent(usuario.tipo ?? "")}&id=${usuario.id_usuario}`
+            );
+          } else {
+            // Usuario NO activo: enviar código y redirigir para verificación
+                await service.generarYEnviarCodigo(usuario.id_usuario, usuario.correo ?? "");
+            return res.redirect(
+              `${process.env.FRONTEND_URL}/auth/callback?email=${encodeURIComponent(usuario.correo ?? "")}&needs_verification=true`
+            );
+          }
         } catch (err) {
             console.error('Google auth error:', err);
             return res.status(401).json({ error: 'Autenticación con Google fallida' });
@@ -127,7 +139,7 @@ export class authController {
         try {
           console.log('Iniciando registro manual...');
           console.log('Datos recibidos:', req.body);
-          
+
           const errores = validationResult(req);
           if (!errores.isEmpty()) {
             console.log('Errores de validación:', errores.array());
@@ -136,7 +148,7 @@ export class authController {
 
           const { nombre, apellido, correo, password, tipo } = req.body;
           console.log(`Registrando usuario: ${nombre} ${apellido} (${correo})`);
-          
+
           const resultado = await service.registrarUsuarioManual({
             nombre,
             apellido,
@@ -172,13 +184,13 @@ export class authController {
     try {
       const { codigo } = req.body;
       console.log('Verificando código:', codigo);
-      
+
       if (!codigo) {
         return res.status(400).json({ error: 'Código requerido' });
       }
 
       const resultado = await service.verificarCodigo(codigo);
-      
+
       if (!resultado.verificado) {
         console.log('Código inválido o expirado:', codigo);
         return res.status(400).json({ error: 'Código inválido o expirado. Intenta nuevamente.' });
@@ -200,13 +212,13 @@ export class authController {
     try {
       const { correo } = req.body;
       console.log('Reenviando código a:', correo);
-      
+
       if (!correo) {
         return res.status(400).json({ error: 'Correo requerido' });
       }
 
       const enviado = await service.reenviarCodigo(correo);
-      
+
       if (!enviado) {
         console.log('No se pudo reenviar el código a:', correo);
         return res.status(400).json({ error: 'No se pudo reenviar el código. Verifica que el correo esté registrado.' });
@@ -226,14 +238,14 @@ export class authController {
     try {
       // El perfil de usuario ya está disponible en req.user gracias a passport
       const user = req.user as any;
-      
+
       if (!user) {
         return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
       }
 
       const correo = user.emails[0].value;
       console.log(' Google callback - Email:', correo);
-      
+
       const repo = new usuarioRepository();
       let usuario = await repo.findByCorreo(correo);
 
@@ -249,18 +261,18 @@ export class authController {
         avatar_url: user.photos?.[0]?.value,
           activo: false // Usuario inactivo hasta verificación
         });
-        
+
         // Generar código de verificación
         const service = new authService();
         const codigoEnviado = await service.generarYEnviarCodigo(usuario.id_usuario, correo);
-        
+
         if (!codigoEnviado) {
           console.error('Error enviando código de verificación');
           return res.redirect(`${process.env.FRONTEND_URL}/login?error=email_failed`);
         }
-        
+
         console.log('Usuario OAuth creado y código enviado');
-        
+
         // Redirigir a página de verificación con el email
         const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?email=${encodeURIComponent(correo)}&provider=google&needs_verification=true`;
         return res.redirect(redirectUrl);
@@ -282,7 +294,7 @@ export class authController {
         });
         const token = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
         const nombreCompleto = `${usuario.nombre} ${usuario.apellido}`.trim();
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=google&nombre=${encodeURIComponent(nombreCompleto)}`;
+        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=google&nombre=${encodeURIComponent(nombreCompleto)}&email=${encodeURIComponent(usuario.correo || '')}&tipo=${usuario.tipo}&id=${usuario.id_usuario}`;
         console.log('URL de redirección:', redirectUrl);
         return res.redirect(redirectUrl);
       } else {
@@ -290,12 +302,12 @@ export class authController {
         console.log('Usuario existe pero no está activo, enviando código');
         const service = new authService();
         const codigoEnviado = await service.generarYEnviarCodigo(usuario.id_usuario, correo);
-        
+
         if (!codigoEnviado) {
           console.error('Error enviando código de verificación');
           return res.redirect(`${process.env.FRONTEND_URL}/login?error=email_failed`);
         }
-        
+
         const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?email=${encodeURIComponent(correo)}&provider=google&needs_verification=true`;
       return res.redirect(redirectUrl);
       }
@@ -309,14 +321,14 @@ export class authController {
     try {
       // El perfil de usuario ya está disponible en req.user gracias a passport
       const user = req.user as any;
-      
+
       if (!user) {
         return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
       }
 
       const correo = user.emails?.[0]?.value || user._json?.mail;
       console.log(' Microsoft callback - Email:', correo);
-      
+
       const repo = new usuarioRepository();
       let usuario = await repo.findByCorreo(correo);
 
@@ -332,18 +344,18 @@ export class authController {
         avatar_url: user.photos?.[0]?.value,
           activo: false // Usuario inactivo hasta verificación
         });
-        
+
         // Generar código de verificación
         const service = new authService();
         const codigoEnviado = await service.generarYEnviarCodigo(usuario.id_usuario, correo);
-        
+
         if (!codigoEnviado) {
           console.error('Error enviando código de verificación');
           return res.redirect(`${process.env.FRONTEND_URL}/login?error=email_failed`);
         }
-        
+
         console.log('Usuario OAuth creado y código enviado');
-        
+
         // Redirigir a página de verificación con el email
         const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?email=${encodeURIComponent(correo)}&provider=microsoft&needs_verification=true`;
         return res.redirect(redirectUrl);
@@ -365,7 +377,7 @@ export class authController {
         });
         const token = jwt.sign({ id: usuario.id_usuario, correo: usuario.correo }, jwtSecret, { expiresIn: '7d' });
         const nombreCompleto = `${usuario.nombre} ${usuario.apellido}`.trim();
-        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=microsoft&nombre=${encodeURIComponent(nombreCompleto)}`;
+        const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=microsoft&nombre=${encodeURIComponent(nombreCompleto)}&email=${encodeURIComponent(usuario.correo || '')}&tipo=${usuario.tipo}&id=${usuario.id_usuario}`;
         console.log('URL de redirección:', redirectUrl);
         return res.redirect(redirectUrl);
       } else {
@@ -373,12 +385,12 @@ export class authController {
         console.log('Usuario existe pero no está activo, enviando código');
         const service = new authService();
         const codigoEnviado = await service.generarYEnviarCodigo(usuario.id_usuario, correo);
-        
+
         if (!codigoEnviado) {
           console.error('Error enviando código de verificación');
           return res.redirect(`${process.env.FRONTEND_URL}/login?error=email_failed`);
         }
-        
+
         const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?email=${encodeURIComponent(correo)}&provider=microsoft&needs_verification=true`;
       return res.redirect(redirectUrl);
       }

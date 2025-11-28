@@ -7,4 +7,5 @@ export interface curso {
   fecha_creacion: string;
   titulo: string | null;
   descripcion: string | null;
+  activo: boolean;
 }

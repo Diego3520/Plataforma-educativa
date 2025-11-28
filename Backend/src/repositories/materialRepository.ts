@@ -7,6 +7,11 @@ export class materialRepository {
     return res.rows;
   }
 
+  async findByCurso(cursoId: number): Promise<material[]> {
+    const res = await pool.query('SELECT * FROM material WHERE id_curso = $1 ORDER BY material_id', [cursoId]);
+    return res.rows;
+  }
+
   async findById(id: number): Promise<material | null> {
     const res = await pool.query('SELECT * FROM material WHERE material_id = $1', [id]);
     if (res.rowCount === 0) {
@@ -21,15 +26,16 @@ export class materialRepository {
   }
 
   async create(data: Omit<material, 'material_id' | 'creado_at'>): Promise<material> {
-    const query = `INSERT INTO material (solucion_modelo, ruta_archivo, tamano_bytes, mime_type, content_type, activo)
-      VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
+    const query = `INSERT INTO material (solucion_modelo, ruta_archivo, tamano_bytes, mime_type, content_type, activo, id_curso)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
     const values = [
       data.solucion_modelo,
       data.ruta_archivo,
       data.tamano_bytes,
       data.mime_type,
       data.content_type,
-      data.activo
+      data.activo,
+      data.id_curso
     ];
     const res = await pool.query(query, values);
     return res.rows[0];

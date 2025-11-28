@@ -71,114 +71,353 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onSwitchToRegister }) 
         window.location.href = `${import.meta.env.VITE_API_URL || 'https://plataforma-educativa-production-12c8.up.railway.app'}/auth/microsoft`;
     };
 
-    return (
-        <div className="flex min-h-screen font-sans">
-            {/* Panel izquierdo oscuro */}
-            <div className="flex-[0_0_45%] bg-gradient-to-br from-blue-950 via-blue-900 to-purple-900 p-12 flex flex-col justify-center relative overflow-hidden">
-                {/* Efectos de fondo */}
-                <div className="absolute top-20 left-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-32 right-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
+    // Estilos en línea para mantener todo en un archivo
+    const styles = {
+        container: {
+            minHeight: '100vh',
+            display: 'flex',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+        },
+        leftPanel: {
+            flex: '0 0 45%',
+            background: 'linear-gradient(180deg, #6ba3e0 0%, #7fc27a 100%)',
+            padding: '3rem',
+            display: 'flex',
+            flexDirection: 'column' as const,
+            justifyContent: 'center',
+            position: 'relative' as const,
+            overflow: 'hidden',
+        },
+        backgroundEffect1: {
+            position: 'absolute' as const,
+            top: '5rem',
+            left: '5rem',
+            width: '16rem',
+            height: '16rem',
+            background: 'rgba(255, 255, 255, 0.12)',
+            borderRadius: '50%',
+            filter: 'blur(3rem)',
+        },
+        backgroundEffect2: {
+            position: 'absolute' as const,
+            bottom: '8rem',
+            right: '5rem',
+            width: '20rem',
+            height: '20rem',
+            background: 'rgba(255, 255, 255, 0.08)',
+            borderRadius: '50%',
+            filter: 'blur(3rem)',
+        },
+        leftContent: {
+            position: 'relative' as const,
+            zIndex: 10,
+            maxWidth: '28rem',
+        },
+        title: {
+            color: '#fff',
+            fontSize: '3rem',
+            fontWeight: 900,
+            marginBottom: '1.5rem',
+            lineHeight: 1.02,
+        },
+        subtitle: {
+            color: 'rgba(255, 255, 255, 0.95)',
+            fontSize: '1.05rem',
+            lineHeight: 1.6,
+            marginBottom: '2rem',
+        },
+        link: {
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: '0.875rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            textDecoration: 'none',
+        },
+        rightPanel: {
+            flex: 1,
+            background: '#fff',
+            padding: '3rem',
+            display: 'flex',
+            flexDirection: 'column' as const,
+            justifyContent: 'center',
+        },
+        rightContent: {
+            maxWidth: '28rem',
+            margin: '0 auto',
+            width: '100%',
+        },
+        switchText: {
+            textAlign: 'right' as const,
+            marginBottom: '2rem',
+            color: '#666',
+            fontSize: '0.875rem',
+        },
+        switchButton: {
+            background: 'none',
+            border: 'none',
+            color: '#2b6bd1',
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            marginLeft: '0.25rem',
+        },
+        formTitle: {
+            fontSize: '2.25rem',
+            fontWeight: 900,
+            color: '#2d3748',
+            marginBottom: '0.5rem',
+        },
+        formSubtitle: {
+            color: '#666',
+            fontSize: '0.875rem',
+            marginBottom: '2rem',
+        },
+        errorMessage: {
+            color: '#dc2626',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            marginBottom: '1.25rem',
+            fontSize: '0.875rem',
+        },
+        successMessage: {
+            color: '#059669',
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            marginBottom: '1.25rem',
+            fontSize: '0.875rem',
+        },
+        socialButton: {
+            width: '100%',
+            padding: '0.75rem',
+            background: '#fff',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            cursor: 'pointer',
+            marginBottom: '0.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            transition: 'all 0.2s ease',
+        },
+        googleIcon: {
+            width: '1.25rem',
+            height: '1.25rem',
+            background: '#ea4335',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+        },
+        microsoftIcon: {
+            width: '1.25rem',
+            height: '1.25rem',
+            background: '#0078d4',
+            borderRadius: '0.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+        },
+        separator: {
+            display: 'flex',
+            alignItems: 'center',
+            margin: '1.5rem 0',
+            color: '#9ca3af',
+            fontSize: '0.75rem',
+        },
+        separatorLine: {
+            flex: 1,
+            height: '1px',
+            background: '#e5e7eb',
+        },
+        separatorText: {
+            padding: '0 1rem',
+        },
+        inputContainer: {
+            marginBottom: '1rem',
+        },
+        label: {
+            display: 'block',
+            color: '#374151',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.05em',
+            marginBottom: '0.5rem',
+        },
+        input: {
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            outline: 'none',
+            transition: 'all 0.2s ease',
+        },
+        primaryButton: {
+            width: '100%',
+            padding: '0.9rem',
+            background: '#fff',
+            color: '#2b6bd1',
+            border: '1px solid',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            marginBottom: '1rem',
+            boxShadow: '0 10px 24px rgba(27, 84, 255, 0.14)',
+            transition: 'all 0.2s ease',
+        },
+    };
 
-                <div className="relative z-10 max-w-md">
-                    <h1 className="text-white text-5xl font-bold mb-6 leading-tight">
-                        bienvenido de vuelta
+    return (
+        <div style={styles.container}>
+            {/* Panel izquierdo */}
+            <div style={styles.leftPanel}>
+                <div style={styles.backgroundEffect1}></div>
+                <div style={styles.backgroundEffect2}></div>
+                
+                <div style={styles.leftContent}>
+                    <h1 style={styles.title}>
+                        Bienvenido de vuelta
                     </h1>
-                    <p className="text-white/80 text-lg leading-relaxed mb-8">
-                        inicia sesión para continuar tu aprendizaje y acceder a todos los recursos.
+                    <p style={styles.subtitle}>
+                        Inicia sesión para continuar tu aprendizaje y acceder a todos los recursos.
                     </p>
-                    <a href="#" className="text-white/90 text-sm inline-flex items-center gap-2 hover:text-white transition-colors">
-                        ver lo que está incluido 
-                        <span className="text-lg">↓</span>
+                    <a href="#" style={styles.link}>
+                        Ver lo que está incluido 
+                        <span style={{ fontSize: '1.125rem' }}>↓</span>
                     </a>
                 </div>
             </div>
 
-            {/* Panel derecho claro */}
-            <div className="flex-1 bg-white p-12 flex flex-col justify-center">
-                <div className="max-w-md mx-auto w-full">
-                    <div className="text-right mb-8">
-                        <span className="text-gray-600 text-sm">
-                            ¿no tienes una cuenta? 
-                        </span>
+            {/* Panel derecho */}
+            <div style={styles.rightPanel}>
+                <div style={styles.rightContent}>
+                    <div style={styles.switchText}>
+                        <span>¿No tienes una cuenta? </span>
                         <button 
                             onClick={onSwitchToRegister}
-                            className="bg-none border-none text-blue-600 font-medium cursor-pointer text-sm ml-1 hover:underline"
+                            style={styles.switchButton}
                         >
-                            regístrate
+                            Regístrate
                         </button>
                     </div>
 
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                        inicia sesión
+                    <h2 style={styles.formTitle}>
+                        Inicia sesión
                     </h2>
-                    <p className="text-gray-600 mb-8 text-sm">
-                        ¡continúa tu viaje de aprendizaje!
+                    <p style={styles.formSubtitle}>
+                        ¡Continúa tu viaje de aprendizaje!
                     </p>
 
                     {error && (
-                        <div className="text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg mb-5 text-sm">
+                        <div style={styles.errorMessage}>
                             {error}
                         </div>
                     )}
 
                     {success && (
-                        <div className="text-green-700 bg-green-50 border border-green-200 p-3 rounded-lg mb-5 text-sm">
-                            ¡inicio de sesión exitoso! redirigiendo...
+                        <div style={styles.successMessage}>
+                            ¡Inicio de sesión exitoso! Redirigiendo...
                         </div>
                     )}
 
                     {/* Botones de redes sociales */}
-                    <div className="mb-6">
+                    <div style={{ marginBottom: '1.5rem' }}>
                         <button
                             type="button"
                             onClick={handleGoogleLogin}
-                            className="w-full py-3 bg-white border border-gray-300 rounded-lg text-sm font-medium cursor-pointer mb-3 flex items-center justify-center gap-3 transition-all hover:bg-gray-50 hover:border-gray-400"
+                            style={styles.socialButton}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = '#f9fafb';
+                                e.currentTarget.style.borderColor = '#9ca3af';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = '#fff';
+                                e.currentTarget.style.borderColor = '#d1d5db';
+                            }}
                         >
-                            <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            <div style={styles.googleIcon}>
                                 G
                             </div>
-                            continuar con google
+                            Continuar con Google
                         </button>
 
                         <button
                             type="button"
                             onClick={handleMicrosoftLogin}
-                            className="w-full py-3 bg-white border border-gray-300 rounded-lg text-sm font-medium cursor-pointer flex items-center justify-center gap-3 transition-all hover:bg-gray-50 hover:border-gray-400"
+                            style={styles.socialButton}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = '#f9fafb';
+                                e.currentTarget.style.borderColor = '#9ca3af';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = '#fff';
+                                e.currentTarget.style.borderColor = '#d1d5db';
+                            }}
                         >
-                            <div className="w-5 h-5 bg-blue-600 rounded-sm flex items-center justify-center text-white text-xs font-bold">
+                            <div style={styles.microsoftIcon}>
                                 M
                             </div>
-                            continuar con microsoft
+                            Continuar con Microsoft
                         </button>
                     </div>
 
                     {/* Separador */}
-                    <div className="flex items-center my-6 text-gray-400 text-xs">
-                        <div className="flex-1 h-px bg-gray-300"></div>
-                        <span className="px-4">o</span>
-                        <div className="flex-1 h-px bg-gray-300"></div>
+                    <div style={styles.separator}>
+                        <div style={styles.separatorLine}></div>
+                        <span style={styles.separatorText}>o</span>
+                        <div style={styles.separatorLine}></div>
                     </div>
 
                     {/* Formulario de login */}
-                    <form onSubmit={handleSubmit} className={success ? 'opacity-60' : 'opacity-100'}>
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-xs font-semibold mb-2 uppercase tracking-wide">
-                                correo electrónico
+                    <form onSubmit={handleSubmit} style={{ opacity: success ? 0.6 : 1 }}>
+                        <div style={styles.inputContainer}>
+                            <label style={styles.label}>
+                                Correo Electrónico
                             </label>
                             <input
                                 type="email"
                                 name="correo"
                                 value={formData.correo}
                                 onChange={handleInputChange}
-                                placeholder="introduce tu correo electrónico"
+                                placeholder="Introduce tu correo electrónico"
                                 required
                                 disabled={loading || success}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                style={{
+                                    ...styles.input,
+                                    background: (loading || success) ? '#f9fafb' : '#fff',
+                                    cursor: (loading || success) ? 'not-allowed' : 'text',
+                                }}
+                                onFocus={(e) => {
+                                    if (!loading && !success) {
+                                        e.target.style.borderColor = '#2b6bd1';
+                                        e.target.style.boxShadow = '0 0 0 3px rgba(43, 107, 209, 0.1)';
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = '#d1d5db';
+                                    e.target.style.boxShadow = 'none';
+                                }}
                             />
                         </div>
 
-                        <div className="mb-6">
-                            <label className="block text-gray-700 text-xs font-semibold mb-2 uppercase tracking-wide">
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={styles.label}>
                                 contraseña
                             </label>
                             <input
@@ -186,19 +425,49 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onSwitchToRegister }) 
                                 name="password"
                                 value={formData.password}
                                 onChange={handleInputChange}
-                                placeholder="introduce tu contraseña"
+                                placeholder="Introduce tu contraseña"
                                 required
                                 disabled={loading || success}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                style={{
+                                    ...styles.input,
+                                    background: (loading || success) ? '#f9fafb' : '#fff',
+                                    cursor: (loading || success) ? 'not-allowed' : 'text',
+                                }}
+                                onFocus={(e) => {
+                                    if (!loading && !success) {
+                                        e.target.style.borderColor = '#2b6bd1';
+                                        e.target.style.boxShadow = '0 0 0 3px rgba(43, 107, 209, 0.1)';
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = '#d1d5db';
+                                    e.target.style.boxShadow = 'none';
+                                }}
                             />
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading || success}
-                            className="w-full py-3 bg-blue-600 text-white border-none rounded-lg text-sm font-semibold cursor-pointer mb-5 transition-all hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            style={{
+                                ...styles.primaryButton,
+                                opacity: (loading || success) ? 0.6 : 1,
+                                cursor: (loading || success) ? 'not-allowed' : 'pointer',
+                            }}
+                            onMouseOver={(e) => {
+                                if (!loading && !success) {
+                                    e.currentTarget.style.filter = 'brightness(0.98)';
+                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                }
+                            }}
+                            onMouseOut={(e) => {
+                                if (!loading && !success) {
+                                    e.currentTarget.style.filter = 'none';
+                                    e.currentTarget.style.transform = 'none';
+                                }
+                            }}
                         >
-                            {loading ? "iniciando sesión..." : success ? "redirigiendo..." : "iniciar sesión"}
+                            {loading ? "Iniciando sesión..." : success ? "Redirigiendo..." : "Iniciar sesión"}
                         </button>
                     </form>
                 </div>

@@ -106,86 +106,339 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
         }
     };
 
+    // Estilos en línea para mantener todo en un archivo
+    const styles = {
+        container: {
+            minHeight: '100vh',
+            display: 'flex',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+        },
+        leftPanel: {
+            flex: '0 0 45%',
+            background: 'linear-gradient(180deg, #6ba3e0 0%, #7fc27a 100%)',
+            padding: '3rem',
+            display: 'flex',
+            flexDirection: 'column' as const,
+            justifyContent: 'center',
+            position: 'relative' as const,
+            overflow: 'hidden',
+        },
+        backgroundEffect1: {
+            position: 'absolute' as const,
+            top: '5rem',
+            left: '5rem',
+            width: '16rem',
+            height: '16rem',
+            background: 'rgba(255, 255, 255, 0.12)',
+            borderRadius: '50%',
+            filter: 'blur(3rem)',
+        },
+        backgroundEffect2: {
+            position: 'absolute' as const,
+            bottom: '8rem',
+            right: '5rem',
+            width: '20rem',
+            height: '20rem',
+            background: 'rgba(255, 255, 255, 0.08)',
+            borderRadius: '50%',
+            filter: 'blur(3rem)',
+        },
+        leftContent: {
+            position: 'relative' as const,
+            zIndex: 10,
+            maxWidth: '28rem',
+        },
+        title: {
+            color: '#fff',
+            fontSize: '3rem',
+            fontWeight: 900,
+            marginBottom: '1.5rem',
+            lineHeight: 1.02,
+        },
+        subtitle: {
+            color: 'rgba(255, 255, 255, 0.95)',
+            fontSize: '1.05rem',
+            lineHeight: 1.6,
+            marginBottom: '2rem',
+        },
+        link: {
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: '0.875rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            textDecoration: 'none',
+        },
+        rightPanel: {
+            flex: 1,
+            background: '#fff',
+            padding: '3rem',
+            display: 'flex',
+            flexDirection: 'column' as const,
+            justifyContent: 'center',
+        },
+        rightContent: {
+            maxWidth: '28rem',
+            margin: '0 auto',
+            width: '100%',
+        },
+        switchText: {
+            textAlign: 'right' as const,
+            marginBottom: '2rem',
+            color: '#666',
+            fontSize: '0.875rem',
+        },
+        switchButton: {
+            background: 'none',
+            border: 'none',
+            color: '#2b6bd1',
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            marginLeft: '0.25rem',
+        },
+        formTitle: {
+            fontSize: '2.25rem',
+            fontWeight: 900,
+            color: '#2d3748',
+            marginBottom: '0.5rem',
+        },
+        formSubtitle: {
+            color: '#666',
+            fontSize: '0.875rem',
+            marginBottom: '2rem',
+        },
+        errorMessage: {
+            color: '#dc2626',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            marginBottom: '1.25rem',
+            fontSize: '0.875rem',
+        },
+        successMessage: {
+            color: '#059669',
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            marginBottom: '1.25rem',
+            fontSize: '0.875rem',
+        },
+        socialButton: {
+            width: '100%',
+            padding: '0.75rem',
+            background: '#fff',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            cursor: 'pointer',
+            marginBottom: '0.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            transition: 'all 0.2s ease',
+        },
+        googleIcon: {
+            width: '1.25rem',
+            height: '1.25rem',
+            background: '#ea4335',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+        },
+        microsoftIcon: {
+            width: '1.25rem',
+            height: '1.25rem',
+            background: '#0078d4',
+            borderRadius: '0.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+        },
+        separator: {
+            display: 'flex',
+            alignItems: 'center',
+            margin: '1.5rem 0',
+            color: '#9ca3af',
+            fontSize: '0.75rem',
+        },
+        separatorLine: {
+            flex: 1,
+            height: '1px',
+            background: '#e5e7eb',
+        },
+        separatorText: {
+            padding: '0 1rem',
+        },
+        inputGroup: {
+            display: 'flex',
+            gap: '0.75rem',
+            marginBottom: '1rem',
+        },
+        inputContainer: {
+            flex: 1,
+        },
+        label: {
+            display: 'block',
+            color: '#374151',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.05em',
+            marginBottom: '0.5rem',
+        },
+        input: {
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            outline: 'none',
+            transition: 'all 0.2s ease',
+        },
+        select: {
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            outline: 'none',
+            background: '#fff',
+            transition: 'all 0.2s ease',
+        },
+        primaryButton: {
+            width: '100%',
+            padding: '0.9rem',
+            background: '#fff',
+            color: '#2b6bd1',
+            border: '1px solid',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            marginBottom: '1rem',
+            boxShadow: '0 10px 24px rgba(27, 84, 255, 0.14)',
+            transition: 'all 0.2s ease',
+        },
+        secondaryButton: {
+            width: '100%',
+            padding: '0.75rem',
+            background: 'transparent',
+            color: '#666',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            cursor: 'pointer',
+            marginBottom: '0.75rem',
+            transition: 'all 0.2s ease',
+        },
+    };
+
     if (showVerification) {
         return (
-            <div className="flex min-h-screen font-sans">
-                {/* Panel izquierdo oscuro */}
-                <div className="flex-[0_0_45%] bg-gradient-to-br from-blue-950 via-blue-900 to-purple-900 p-12 flex flex-col justify-center relative overflow-hidden">
-                    {/* Efectos de fondo */}
-                    <div className="absolute top-20 left-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-32 right-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
-
-                    <div className="relative z-10 max-w-md">
-                        <h1 className="text-white text-5xl font-bold mb-6 leading-tight">
-                            verifica tu cuenta
+            <div style={styles.container}>
+                {/* Panel izquierdo */}
+                <div style={styles.leftPanel}>
+                    <div style={styles.backgroundEffect1}></div>
+                    <div style={styles.backgroundEffect2}></div>
+                    
+                    <div style={styles.leftContent}>
+                        <h1 style={styles.title}>
+                            Verifica tu cuenta
                         </h1>
-                        <p className="text-white/80 text-lg leading-relaxed mb-8">
-                            hemos enviado un código de verificación a tu correo electrónico. ingresa el código para activar tu cuenta.
+                        <p style={styles.subtitle}>
+                            Hemos enviado un código de verificación a tu correo electrónico. Ingresa el código para activar tu cuenta.
                         </p>
-                        <a href="#" className="text-white/90 text-sm inline-flex items-center gap-2 hover:text-white transition-colors">
+                        <a href="#" style={styles.link}>
                             ver lo que está incluido 
-                            <span className="text-lg">↓</span>
+                            <span style={{ fontSize: '1.125rem' }}>↓</span>
                         </a>
                     </div>
                 </div>
 
-                {/* Panel derecho claro */}
-                <div className="flex-1 bg-white p-12 flex flex-col justify-center">
-                    <div className="max-w-md mx-auto w-full">
-                        <div className="text-right mb-8">
-                            <span className="text-gray-600 text-sm">
-                                ¿ya tienes una cuenta? 
-                            </span>
+                {/* Panel derecho */}
+                <div style={styles.rightPanel}>
+                    <div style={styles.rightContent}>
+                        <div style={styles.switchText}>
+                            <span>¿Ya tienes una cuenta? </span>
                             <button 
                                 onClick={onSwitchToLogin}
-                                className="bg-none border-none text-blue-600 font-medium cursor-pointer text-sm ml-1 hover:underline"
+                                style={styles.switchButton}
                             >
-                                inicia sesión
+                                Inicia Sesión
                             </button>
                         </div>
 
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                            verificación
+                        <h2 style={styles.formTitle}>
+                            Verificación
                         </h2>
-                        <p className="text-gray-600 mb-8 text-sm">
-                            ¡completa tu registro!
+                        <p style={styles.formSubtitle}>
+                            ¡Completa tu registro!
                         </p>
 
                         {message && (
-                            <div className="text-green-700 bg-green-50 border border-green-200 p-3 rounded-lg mb-5 text-sm">
+                            <div style={styles.successMessage}>
                                 {message}
                             </div>
                         )}
 
                         {error && (
-                            <div className="text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg mb-5 text-sm">
+                            <div style={styles.errorMessage}>
                                 {error}
                             </div>
                         )}
 
-                        <p className="text-gray-600 mb-6 text-sm">
+                        <p style={{ ...styles.formSubtitle, marginBottom: '1.5rem' }}>
                             Hemos enviado un código de verificación a tu correo: <strong>{formData.correo}</strong>
                         </p>
 
                         <form onSubmit={handleVerifyCode}>
-                            <div className="mb-5">
-                                <label className="block text-gray-700 text-xs font-semibold mb-2 uppercase tracking-wide">
-                                    código de verificación
+                            <div style={{ marginBottom: '1.25rem' }}>
+                                <label style={styles.label}>
+                                    Código de verificación
                                 </label>
                                 <input
                                     type="text"
                                     value={verificationCode}
                                     onChange={(e) => setVerificationCode(e.target.value)}
-                                    placeholder="introduce el código de 6 dígitos"
+                                    placeholder="Introduce el código de 6 dígitos"
                                     required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    style={styles.input}
                                 />
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full py-3 bg-blue-600 text-white border-none rounded-lg text-sm font-semibold cursor-pointer mb-3 transition-all hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                style={{
+                                    ...styles.primaryButton,
+                                    opacity: loading ? 0.6 : 1,
+                                    cursor: loading ? 'not-allowed' : 'pointer',
+                                }}
+                                onMouseOver={(e) => {
+                                    if (!loading) {
+                                        e.currentTarget.style.filter = 'brightness(0.98)';
+                                        e.currentTarget.style.transform = 'translateY(-1px)';
+                                    }
+                                }}
+                                onMouseOut={(e) => {
+                                    if (!loading) {
+                                        e.currentTarget.style.filter = 'none';
+                                        e.currentTarget.style.transform = 'none';
+                                    }
+                                }}
                             >
                                 {loading ? "verificando..." : "verificar código"}
                             </button>
@@ -194,21 +447,38 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                                 type="button"
                                 onClick={handleReenviarCodigo}
                                 disabled={loading}
-                                className="w-full py-3 bg-white text-gray-700 border border-gray-300 rounded-lg text-sm font-medium cursor-pointer mb-3 transition-all hover:bg-gray-50 disabled:cursor-not-allowed"
+                                style={{
+                                    ...styles.secondaryButton,
+                                    cursor: loading ? 'not-allowed' : 'pointer',
+                                }}
+                                onMouseOver={(e) => {
+                                    if (!loading) {
+                                        e.currentTarget.style.background = '#f9fafb';
+                                    }
+                                }}
+                                onMouseOut={(e) => {
+                                    if (!loading) {
+                                        e.currentTarget.style.background = 'transparent';
+                                    }
+                                }}
                             >
-                                reenviar código
+                                Reenviar código
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => setShowVerification(false)}
-                                className="w-full py-3 bg-transparent text-gray-600 border border-gray-300 rounded-lg text-sm font-medium cursor-pointer transition-all hover:bg-gray-50"
+                                style={styles.secondaryButton}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.background = '#f9fafb';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.background = 'transparent';
+                                }}
                             >
-                                volver al registro
+                                Volver al registro
                             </button>
                         </form>
-
-                    
                     </div>
                 </div>
             </div>
@@ -216,92 +486,105 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
     }
 
     return (
-        <div className="flex min-h-screen font-sans">
-            {/* Panel izquierdo oscuro */}
-            <div className="flex-[0_0_45%] bg-gradient-to-br from-blue-950 via-blue-900 to-purple-900 p-12 flex flex-col justify-center relative overflow-hidden">
-                {/* Efectos de fondo */}
-                <div className="absolute top-20 left-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-32 right-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
-
-                <div className="relative z-10 max-w-md">
-                    <h1 className="text-white text-5xl font-bold mb-6 leading-tight">
-                        crea tu cuenta gratuita
+        <div style={styles.container}>
+            {/* Panel izquierdo */}
+            <div style={styles.leftPanel}>
+                <div style={styles.backgroundEffect1}></div>
+                <div style={styles.backgroundEffect2}></div>
+                
+                <div style={styles.leftContent}>
+                    <h1 style={styles.title}>
+                        Crea tu cuenta gratuita
                     </h1>
-                    <p className="text-white/80 text-lg leading-relaxed mb-8">
-                        explora nuestros cursos y contenidos. ideal para estudiantes y equipos.
+                    <p style={styles.subtitle}>
+                        Explora nuestros cursos y contenidos. Ideal para estudiantes y equipos.
                     </p>
-                    <a href="#" className="text-white/90 text-sm inline-flex items-center gap-2 hover:text-white transition-colors">
-                        ver lo que está incluido 
-                        <span className="text-lg">↓</span>
+                    <a href="#" style={styles.link}>
+                        Ver lo que está incluido 
+                        <span style={{ fontSize: '1.125rem' }}>↓</span>
                     </a>
                 </div>
             </div>
 
-            {/* Panel derecho claro */}
-            <div className="flex-1 bg-white p-12 flex flex-col justify-center">
-                <div className="max-w-md mx-auto w-full">
-                    <div className="text-right mb-8">
-                        <span className="text-gray-600 text-sm">
-                            ¿ya tienes una cuenta? 
-                        </span>
+            {/* Panel derecho */}
+            <div style={styles.rightPanel}>
+                <div style={styles.rightContent}>
+                    <div style={styles.switchText}>
+                        <span>¿Ya tienes una cuenta? </span>
                         <button 
                             onClick={onSwitchToLogin}
-                            className="bg-none border-none text-blue-600 font-medium cursor-pointer text-sm ml-1 hover:underline"
+                            style={styles.switchButton}
                         >
-                            inicia sesión
+                            Inicia sesión
                         </button>
                     </div>
 
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                        regístrate
+                    <h2 style={styles.formTitle}>
+                        Regístrate
                     </h2>
-                    <p className="text-gray-600 mb-8 text-sm">
-                        ¡comienza tu viaje de aprendizaje!
+                    <p style={styles.formSubtitle}>
+                        ¡Comienza tu viaje de aprendizaje!
                     </p>
 
                     {error && (
-                        <div className="text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg mb-5 text-sm">
+                        <div style={styles.errorMessage}>
                             {error}
                         </div>
                     )}
 
                     {/* Botones de redes sociales */}
-                    <div className="mb-6">
+                    <div style={{ marginBottom: '1.5rem' }}>
                         <button
                             type="button"
                             onClick={handleGoogleRegister}
-                            className="w-full py-3 bg-white border border-gray-300 rounded-lg text-sm font-medium cursor-pointer mb-3 flex items-center justify-center gap-3 transition-all hover:bg-gray-50 hover:border-gray-400"
+                            style={styles.socialButton}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = '#f9fafb';
+                                e.currentTarget.style.borderColor = '#9ca3af';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = '#fff';
+                                e.currentTarget.style.borderColor = '#d1d5db';
+                            }}
                         >
-                            <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            <div style={styles.googleIcon}>
                                 G
                             </div>
-                            continuar con google
+                            Continuar con Google
                         </button>
 
                         <button
                             type="button"
                             onClick={handleMicrosoftRegister}
-                            className="w-full py-3 bg-white border border-gray-300 rounded-lg text-sm font-medium cursor-pointer flex items-center justify-center gap-3 transition-all hover:bg-gray-50 hover:border-gray-400"
+                            style={styles.socialButton}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = '#f9fafb';
+                                e.currentTarget.style.borderColor = '#9ca3af';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = '#fff';
+                                e.currentTarget.style.borderColor = '#d1d5db';
+                            }}
                         >
-                            <div className="w-5 h-5 bg-blue-600 rounded-sm flex items-center justify-center text-white text-xs font-bold">
+                            <div style={styles.microsoftIcon}>
                                 M
                             </div>
-                            continuar con microsoft
+                            Continuar con Microsoft
                         </button>
                     </div>
 
                     {/* Separador */}
-                    <div className="flex items-center my-6 text-gray-400 text-xs">
-                        <div className="flex-1 h-px bg-gray-300"></div>
-                        <span className="px-4">o</span>
-                        <div className="flex-1 h-px bg-gray-300"></div>
+                    <div style={styles.separator}>
+                        <div style={styles.separatorLine}></div>
+                        <span style={styles.separatorText}>o</span>
+                        <div style={styles.separatorLine}></div>
                     </div>
 
                     {/* Formulario de registro */}
                     <form onSubmit={handleManualRegister}>
-                        <div className="flex gap-3 mb-4">
-                            <div className="flex-1">
-                                <label className="block text-gray-700 text-xs font-semibold mb-2 uppercase tracking-wide">
+                        <div style={styles.inputGroup}>
+                            <div style={styles.inputContainer}>
+                                <label style={styles.label}>
                                     nombres
                                 </label>
                                 <input
@@ -309,13 +592,13 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                                     name="nombre"
                                     value={formData.nombre}
                                     onChange={handleInputChange}
-                                    placeholder="introduce tu nombre"
+                                    placeholder="Introduce tu nombre"
                                     required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    style={styles.input}
                                 />
                             </div>
-                            <div className="flex-1">
-                                <label className="block text-gray-700 text-xs font-semibold mb-2 uppercase tracking-wide">
+                            <div style={styles.inputContainer}>
+                                <label style={styles.label}>
                                     apellidos
                                 </label>
                                 <input
@@ -323,15 +606,15 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                                     name="apellido"
                                     value={formData.apellido}
                                     onChange={handleInputChange}
-                                    placeholder="introduce tus apellidos"
+                                    placeholder="Introduce tus apellidos"
                                     required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    style={styles.input}
                                 />
                             </div>
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-xs font-semibold mb-2 uppercase tracking-wide">
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={styles.label}>
                                 correo
                             </label>
                             <input
@@ -339,14 +622,14 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                                 name="correo"
                                 value={formData.correo}
                                 onChange={handleInputChange}
-                                placeholder="introduce tu correo electrónico"
+                                placeholder="Introduce tu correo electrónico"
                                 required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                style={styles.input}
                             />
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-xs font-semibold mb-2 uppercase tracking-wide">
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={styles.label}>
                                 contraseña
                             </label>
                             <input
@@ -354,15 +637,15 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                                 name="password"
                                 value={formData.password}
                                 onChange={handleInputChange}
-                                placeholder="introduce tu contraseña"
+                                placeholder="Introduce tu contraseña"
                                 required
                                 minLength={6}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                style={styles.input}
                             />
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-xs font-semibold mb-2 uppercase tracking-wide">
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={styles.label}>
                                 confirmar contraseña
                             </label>
                             <input
@@ -370,22 +653,22 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
-                                placeholder="confirma tu contraseña"
+                                placeholder="Confirma tu contraseña"
                                 required
                                 minLength={6}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                style={styles.input}
                             />
                         </div>
 
-                        <div className="mb-6">
-                            <label className="block text-gray-700 text-xs font-semibold mb-2 uppercase tracking-wide">
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={styles.label}>
                                 tipo de usuario
                             </label>
                             <select
                                 name="tipo"
                                 value={formData.tipo}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                                style={styles.select}
                             >
                                 <option value="alumno">Alumno</option>
                             </select>
@@ -394,13 +677,27 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 bg-blue-600 text-white border-none rounded-lg text-sm font-semibold cursor-pointer mb-5 transition-all hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            style={{
+                                ...styles.primaryButton,
+                                opacity: loading ? 0.6 : 1,
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                            }}
+                            onMouseOver={(e) => {
+                                if (!loading) {
+                                    e.currentTarget.style.filter = 'brightness(0.98)';
+                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                }
+                            }}
+                            onMouseOut={(e) => {
+                                if (!loading) {
+                                    e.currentTarget.style.filter = 'none';
+                                    e.currentTarget.style.transform = 'none';
+                                }
+                            }}
                         >
-                            {loading ? "registrando..." : "registrar"}
+                            {loading ? "Registrando..." : "Registrar"}
                         </button>
                     </form>
-
-                    
                 </div>
             </div>
         </div>

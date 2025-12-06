@@ -306,31 +306,59 @@ export default function MaterialesCurso() {
   ), [materiales]);
 
   return (
-    <div className="min-h-screen" style={{ fontFamily: 'Poppins, sans-serif' }}>
-      {/* Header */}
-      <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-purple-900 text-white p-6">
+    <div className="min-h-screen" style={{ 
+      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+      backgroundColor: '#f7fafc'
+    }}>
+      {/* Header con gradiente */}
+      <div className="p-6" style={{ 
+        background: 'linear-gradient(180deg, #6ba3e0 0%, #7fc27a 100%)',
+        color: '#fff'
+      }}>
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-start">
             <div>
               <button
                 onClick={handleBack}
-                className="mb-4 text-white/80 hover:text-white transition-colors text-sm underline"
+                className="mb-4 text-sm underline transition-colors"
+                style={{ 
+                  color: 'rgba(255, 255, 255, 0.8)'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.color = '#fff';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                }}
               >
                 ← Volver al Dashboard
               </button>
-              <h1 className="text-4xl font-bold mb-2">
+              <h1 className="text-4xl font-bold mb-2" style={{ color: '#fff' }}>
                 {curso?.titulo || 'Materiales del Curso'}
               </h1>
               {curso?.codigo && (
-                <p className="text-lg mb-1">Código: {curso.codigo}</p>
+                <p className="text-lg mb-1" style={{ color: '#fff' }}>Código: {curso.codigo}</p>
               )}
               {curso?.descripcion && (
-                <p className="text-sm text-white/80">{curso.descripcion}</p>
+                <p className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>{curso.descripcion}</p>
               )}
             </div>
             <button
               onClick={handleBack}
-              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-semibold transition-all border border-white/30 hover:border-white/50"
+              className="px-4 py-2 rounded-lg font-semibold transition-all border"
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                color: '#fff',
+                borderColor: 'rgba(255, 255, 255, 0.3)'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+              }}
             >
               Volver
             </button>
@@ -339,52 +367,72 @@ export default function MaterialesCurso() {
       </div>
 
       {/* Contenido principal */}
-      <div className="bg-gray-50 min-h-screen p-6">
+      <div className="min-h-screen p-6" style={{ backgroundColor: '#f7fafc' }}>
         <div className="max-w-7xl mx-auto">
           {error && (
-            <div className="text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg mb-5 text-sm">
+            <div className="p-3 rounded-lg mb-5 text-sm" style={{ 
+              color: '#dc2626',
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca'
+            }}>
               {error}
             </div>
           )}
           
           {loading ? (
-            <div className="text-gray-600 text-sm mb-5">Cargando materiales...</div>
+            <div className="text-sm mb-5" style={{ color: '#718096' }}>Cargando materiales...</div>
           ) : comentariosOrdenados.length === 0 && materialesOrdenados.length === 0 ? (
-            <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-              <p className="text-gray-600">No hay material ni comunicados disponibles para este curso.</p>
+            <div className="p-8 text-center rounded-lg" style={{ 
+              backgroundColor: '#fff',
+              border: '1px solid #e2e8f0'
+            }}>
+              <p style={{ color: '#718096' }}>No hay material ni comunicados disponibles para este curso.</p>
             </div>
           ) : (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Comunicados y material en la misma vista</h2>
+              <h2 className="text-2xl font-bold mb-4" style={{ color: '#1a202c' }}>Comunicados y material en la misma vista</h2>
               <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                <section className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col gap-4">
+                <section className="rounded-lg shadow-sm p-6 flex flex-col gap-4" style={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #e2e8f0'
+                }}>
                   <header className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">Comunicados del editor</h3>
-                      <p className="text-sm text-gray-500">Actualizaciones por tópico, anuncios y mensajes.</p>
+                      <h3 className="text-xl font-semibold" style={{ color: '#1a202c' }}>Comunicados del editor</h3>
+                      <p className="text-sm" style={{ color: '#718096' }}>Actualizaciones por tópico, anuncios y mensajes.</p>
                     </div>
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-blue-50 text-blue-700 border border-blue-100">
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase" style={{
+                      backgroundColor: '#ebf8ff',
+                      color: '#2b6bd1',
+                      border: '1px solid #bee3f8'
+                    }}>
                       {comentariosOrdenados.length}
                     </span>
                   </header>
                   {comentariosOrdenados.length === 0 ? (
-                    <p className="text-gray-500 text-sm">Aún no hay comunicados nuevos.</p>
+                    <p className="text-sm" style={{ color: '#718096' }}>Aún no hay comunicados nuevos.</p>
                   ) : (
                     <div className="space-y-4 overflow-hidden">
                       {comentariosOrdenados.map(elem => (
-                        <article key={`comentario-${elem.id_comentario}`} className="border border-blue-100 rounded-lg p-4 bg-blue-50 shadow-sm">
+                        <article key={`comentario-${elem.id_comentario}`} className="rounded-lg p-4 shadow-sm" style={{
+                          border: '1px solid #bee3f8',
+                          backgroundColor: '#ebf8ff'
+                        }}>
                           <div className="flex justify-between items-start mb-3">
                             <div className="flex items-center gap-2">
-                              <span className="px-2 py-1 rounded text-xs font-semibold uppercase bg-blue-100 text-blue-700">
+                              <span className="px-2 py-1 rounded text-xs font-semibold uppercase" style={{
+                                backgroundColor: '#bee3f8',
+                                color: '#2b6bd1'
+                              }}>
                                 {elem.tipo}
                               </span>
                               {topicos.length > 0 && (
-                                <span className="text-xs text-gray-600">
+                                <span className="text-xs" style={{ color: '#718096' }}>
                                   {topicos.find(t => t.id_topico === elem.id_topico)?.titulo || ''}
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs" style={{ color: '#a0aec0' }}>
                               {new Date(elem.creado_at).toLocaleString('es-ES')}
                             </span>
                           </div>
@@ -394,22 +442,32 @@ export default function MaterialesCurso() {
                     </div>
                   )}
                 </section>
-                <section className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col gap-4">
+                <section className="rounded-lg shadow-sm p-6 flex flex-col gap-4" style={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #e2e8f0'
+                }}>
                   <header className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">Material del docente</h3>
-                      <p className="text-sm text-gray-500">Recursos subidos por el docente para el curso.</p>
+                      <h3 className="text-xl font-semibold" style={{ color: '#1a202c' }}>Material del docente</h3>
+                      <p className="text-sm" style={{ color: '#718096' }}>Recursos subidos por el docente para el curso.</p>
                     </div>
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-purple-50 text-purple-700 border border-purple-100">
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase" style={{
+                      backgroundColor: '#e9d8fd',
+                      color: '#553c9a',
+                      border: '1px solid #d6bcfa'
+                    }}>
                       {materialesOrdenados.length}
                     </span>
                   </header>
                   {materialesOrdenados.length === 0 ? (
-                    <p className="text-gray-500 text-sm">Todavía no se ha subido material.</p>
+                    <p className="text-sm" style={{ color: '#718096' }}>Todavía no se ha subido material.</p>
                   ) : (
                     <div className="space-y-4">
                       {materialesOrdenados.map(elem => (
-                        <article key={`material-${elem.material_id}`} className="border border-gray-100 rounded-lg p-4 bg-white shadow-sm">
+                        <article key={`material-${elem.material_id}`} className="rounded-lg p-4 shadow-sm" style={{
+                          border: '1px solid #f1f5f9',
+                          backgroundColor: '#fff'
+                        }}>
                           <div className="flex justify-between items-start mb-3">
                             <span className={`px-3 py-1 rounded text-xs font-semibold uppercase ${
                               elem.content_type === 'pdf' ? 'bg-red-100 text-red-700' :
@@ -419,12 +477,12 @@ export default function MaterialesCurso() {
                             }`}>
                               {elem.content_type}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs" style={{ color: '#a0aec0' }}>
                               {new Date(elem.creado_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
                             </span>
                           </div>
                           {elem.mime_type && (
-                            <div className="text-gray-700 font-medium mb-3">{elem.mime_type}</div>
+                            <div className="font-medium mb-3" style={{ color: '#4a5568' }}>{elem.mime_type}</div>
                           )}
                           {elem.ruta_archivo && (
                             <div className="mb-4 space-y-3">
@@ -453,7 +511,8 @@ export default function MaterialesCurso() {
                                 target="_blank"
                                 rel="noreferrer"
                                 download
-                                className="inline-flex items-center gap-2 text-blue-600 text-sm font-semibold"
+                                className="inline-flex items-center gap-2 text-sm font-semibold"
+                                style={{ color: '#2b6bd1' }}
                               >
                                 Descargar archivo
                               </a>
@@ -466,7 +525,18 @@ export default function MaterialesCurso() {
                                 href={resolveMaterialUrl(elem.solucion_modelo) || elem.solucion_modelo}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-2 text-purple-700 text-sm font-semibold border border-purple-200 rounded px-3 py-2 bg-purple-50 hover:bg-purple-100 transition-colors"
+                                className="inline-flex items-center gap-2 text-sm font-semibold rounded px-3 py-2 transition-colors"
+                                style={{ 
+                                  color: '#553c9a',
+                                  border: '1px solid #d6bcfa',
+                                  backgroundColor: '#e9d8fd'
+                                }}
+                                onMouseOver={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#d6bcfa';
+                                }}
+                                onMouseOut={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#e9d8fd';
+                                }}
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17l4 4 4-4m-4-5v9" /></svg>
                                 Ver solución modelo
@@ -486,4 +556,3 @@ export default function MaterialesCurso() {
     </div>
   );
 }
-

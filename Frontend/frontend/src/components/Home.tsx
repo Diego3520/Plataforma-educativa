@@ -61,7 +61,7 @@ export default function Home({ open: openProp, onClose }: HomeProps) {
           desde cero hasta nivel avanzado
         </p>
 
-        <button className="hero-cta" onClick={handleClose}>
+        <button className="hero-cta" onClick={handleOpenRegister}>
           Comenzar
         </button>
       </div>

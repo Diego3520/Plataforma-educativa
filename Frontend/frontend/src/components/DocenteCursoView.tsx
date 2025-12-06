@@ -376,7 +376,10 @@ export default function DocenteCursoView() {
   return (
     <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
       {/* Header */}
-      <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-purple-900 text-white p-6">
+      <div className="p-6" style={{ 
+        background: 'linear-gradient(180deg, #6ba3e0 0%, #7fc27a 100%)',
+        color: '#fff'
+      }}>
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-start">
             <div>
@@ -387,7 +390,7 @@ export default function DocenteCursoView() {
                 ← Volver al Dashboard
               </button>
               <h1 className="text-4xl font-bold mb-2">{curso.titulo || curso.codigo}</h1>
-              <p className="text-lg mb-1">Código: <span className="font-mono">{curso.codigo}</span></p>
+              <p className="text-xl mb-1">Código: <span className="font-mono">{curso.codigo}</span></p>
               {curso.descripcion && <p className="text-sm text-white/80 mt-2">{curso.descripcion}</p>}
             </div>
           </div>

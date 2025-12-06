@@ -43,16 +43,17 @@
 
 .hero-cta{
   background: #fff;
-  color: #2b6bd1;
+  color: #0a0a0a;
   border: none;
   padding: 0.9rem 2.25rem;
-  border-radius: 10px;
+  border-radius: 8px;
   font-weight: 700;
-  box-shadow: 0 10px 24px rgba(27,84,255,0.14);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.12);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.hero-cta:hover{ filter: brightness(0.98); transform: translateY(-1px); }
+.hero-cta:hover{ background-color: #0a0a0a; color: #fff; transform: translateY(-1px); box-shadow: 0 8px 16px rgba(0,0,0,0.20);}
 
 /* Fullscreen modal */
 .hero-modal{

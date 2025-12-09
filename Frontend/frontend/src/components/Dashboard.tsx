@@ -530,7 +530,7 @@ export default function Dashboard() {
         color: '#f8fafc'
       }}>
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-start">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div>
               <h1 className="text-4xl font-bold mb-2" style={{ color: '#f9fbff', textShadow: '0 2px 10px rgba(0,0,0,0.35)' }}>Hola, {fullName || 'Usuario'}</h1>
               <p className="text-xl mb-1" style={{ color: '#f9fbff', textShadow: '0 2px 10px rgba(0,0,0,0.35)' }}>
@@ -540,7 +540,7 @@ export default function Dashboard() {
             </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 rounded-lg font-semibold transition-all border"
+              className="px-4 py-2 rounded-lg font-semibold transition-all border w-full sm:w-auto"
               style={{
                 background: 'rgba(255, 255, 255, 0.2)',
                 color: '#fff',
@@ -568,7 +568,7 @@ export default function Dashboard() {
           borderBottomColor: '#e2e8f0'
         }}>
           <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 className="px-4 py-2 font-semibold transition-colors"

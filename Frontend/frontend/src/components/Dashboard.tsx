@@ -526,17 +526,17 @@ export default function Dashboard() {
     }}>
       {/* Header con info del usuario */}
       <div className="p-6" style={{ 
-        background: 'linear-gradient(180deg, #6ba3e0 0%, #7fc27a 100%)',
-        color: '#fff'
+        background: 'linear-gradient(135deg, #34d1eaff 0%, #33bb8aff 50%, #118076ff 100%)',
+        color: '#f8fafc'
       }}>
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-4xl font-bold mb-2" style={{ color: '#fff' }}>Hola, {fullName || 'Usuario'}</h1>
-              <p className="text-xl mb-1" style={{ color: '#fff' }}>
-                Rol: <span className="font-semibold capitalize" style={{ color: '#fff' }}>{usuario.tipo}</span>
+              <h1 className="text-4xl font-bold mb-2" style={{ color: '#f9fbff', textShadow: '0 2px 10px rgba(0,0,0,0.35)' }}>Hola, {fullName || 'Usuario'}</h1>
+              <p className="text-xl mb-1" style={{ color: '#f9fbff', textShadow: '0 2px 10px rgba(0,0,0,0.35)' }}>
+                Rol: <span className="font-semibold capitalize" style={{ color: '#f9fbff' }}>{usuario.tipo}</span>
               </p>
-              <p className="text-md" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Bienvenido a tu panel</p>
+              <p className="text-md" style={{ color: '#e7f8ff', textShadow: '0 2px 10px rgba(0,0,0,0.35)' }}>Bienvenido a tu panel</p>
             </div>
             <button
               onClick={handleLogout}

@@ -713,6 +713,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                                 style={styles.select}
                             >
                                 <option value="alumno">Alumno</option>
+            
+                            
                             </select>
                         </div>
 

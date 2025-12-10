@@ -346,19 +346,61 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
         },
     };
 
+    // Breakpoints y estilos responsivos derivados
+    const getViewportWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1200);
+    const [viewportWidth, setViewportWidth] = useState(getViewportWidth());
+    const isTablet = viewportWidth <= 1024;
+    const isMobile = viewportWidth <= 768;
+
+    React.useEffect(() => {
+        const onResize = () => setViewportWidth(getViewportWidth());
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    const containerStyle = {
+        ...styles.container,
+        flexDirection: isMobile ? 'column' as const : 'row' as const,
+    };
+
+    const leftPanelStyle = {
+        ...styles.leftPanel,
+        flex: isMobile ? '0 0 auto' : styles.leftPanel.flex,
+        padding: isMobile ? '2rem 1.5rem' : isTablet ? '2.5rem 2rem' : styles.leftPanel.padding,
+    };
+
+    const rightPanelStyle = {
+        ...styles.rightPanel,
+        padding: isMobile ? '2rem 1.5rem' : isTablet ? '2.5rem 2rem' : styles.rightPanel.padding,
+    };
+
+    const titleStyle = {
+        ...styles.title,
+        fontSize: isMobile ? '2rem' : isTablet ? '2.4rem' : styles.title.fontSize,
+    };
+
+    const subtitleStyle = {
+        ...styles.subtitle,
+        fontSize: isMobile ? '0.95rem' : isTablet ? '1rem' : styles.subtitle.fontSize,
+    };
+
+    const inputGroupStyle = isMobile
+        ? { ...styles.inputGroup, flexDirection: 'column' as const, gap: '0.75rem' }
+        : styles.inputGroup;
+
     if (showVerification) {
         return (
-            <div style={styles.container}>
+            <div style={containerStyle}>
                 {/* Panel izquierdo */}
-                <div style={styles.leftPanel}>
+                <div style={leftPanelStyle}>
                     <div style={styles.backgroundEffect1}></div>
                     <div style={styles.backgroundEffect2}></div>
                     
                     <div style={styles.leftContent}>
-                        <h1 style={styles.title}>
+                        <h1 style={titleStyle}>
                             Verifica tu cuenta
                         </h1>
-                        <p style={styles.subtitle}>
+                        <p style={subtitleStyle}>
                             Hemos enviado un código de verificación a tu correo electrónico. Ingresa el código para activar tu cuenta.
                         </p>
                         <a href="#" style={styles.link}>
@@ -369,7 +411,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                 </div>
 
                 {/* Panel derecho */}
-                <div style={styles.rightPanel}>
+                <div style={rightPanelStyle}>
                     <div style={styles.rightContent}>
                         <div style={styles.switchText}>
                             <span>¿Ya tienes una cuenta? </span>
@@ -486,17 +528,17 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
     }
 
     return (
-        <div style={styles.container}>
+        <div style={containerStyle}>
             {/* Panel izquierdo */}
-            <div style={styles.leftPanel}>
+            <div style={leftPanelStyle}>
                 <div style={styles.backgroundEffect1}></div>
                 <div style={styles.backgroundEffect2}></div>
                 
                 <div style={styles.leftContent}>
-                    <h1 style={styles.title}>
+                    <h1 style={titleStyle}>
                         Crea tu cuenta gratuita
                     </h1>
-                    <p style={styles.subtitle}>
+                    <p style={subtitleStyle}>
                         Explora nuestros cursos y contenidos. Ideal para estudiantes y equipos.
                     </p>
                     <a href="#" style={styles.link}>
@@ -507,7 +549,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
             </div>
 
             {/* Panel derecho */}
-            <div style={styles.rightPanel}>
+            <div style={rightPanelStyle}>
                 <div style={styles.rightContent}>
                     <div style={styles.switchText}>
                         <span>¿Ya tienes una cuenta? </span>
@@ -582,7 +624,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
 
                     {/* Formulario de registro */}
                     <form onSubmit={handleManualRegister}>
-                        <div style={styles.inputGroup}>
+                        <div style={inputGroupStyle}>
                             <div style={styles.inputContainer}>
                                 <label style={styles.label}>
                                     nombres
@@ -671,6 +713,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSuccess, onSwitchToLogin 
                                 style={styles.select}
                             >
                                 <option value="alumno">Alumno</option>
+            
+                            
                             </select>
                         </div>
 

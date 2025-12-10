@@ -43,8 +43,8 @@
 .header--inside-hero .header-inner { padding: 0; }
 .header--inside-hero .header-right {
   pointer-events: auto;
-  gap: 10px;
-  padding: 0; /* no grouped background */
+  gap: 12px;
+  padding: 0 8px; /* add horizontal padding for consistent spacing */
   background: transparent; /* remove translucent pill */
   box-shadow: none; /* remove shadow */
   align-items: center;
@@ -62,7 +62,12 @@
 @media (max-width: 640px) {
   /* Keep the header visible on very small screens but less offset */
   .header--inside-hero { top: -12px; right: 12px; }
-  .header--inside-hero .header-right { gap: 6px; padding: 4px 6px; }
+  .header--inside-hero .header-right { 
+    gap: 6px; 
+    padding: 4px 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
   .header--inside-hero .header-right button { font-size: 0.82rem; padding: 5px 8px; }
 }
 
